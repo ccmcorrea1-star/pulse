@@ -1,100 +1,198 @@
-# System Design — Pulse
+# Pulse — System Design
 
-## 1. Purpose and Scope
+Este é o documento principal da arquitetura do Pulse. A primeira parte descreve o que está implementado; as seções de direção futura descrevem contratos e módulos planejados, sem tratá-los como código existente. Produto e roadmap funcional ficam no [PRODUCT.md](PRODUCT.md); UI/UX fica no [DESIGN.md](DESIGN.md).
 
-Pulse is a browser-based dashboard for sharing files and clipboard content between trusted devices on the same local network. The audience is a person managing a small household or team network; the single job is deciding quickly what enters, leaves, or waits for approval. The current repository is a clickable front-end prototype: it demonstrates the user experience and state transitions, but it does not transfer data or connect to a real network.
+## Resumo do estado atual
 
-## 2. Current Architecture
+O repositório contém uma fundação desktop Tauri 2 com frontend Vue 3. O frontend tem navegação, componentes e stores com dados mockados. A comunicação nativa é um único command Rust (`greet`) usado para validar a bridge. Discovery, pairing, rede, persistência, transferência real e os serviços de integração ainda não existem.
 
-The application is delivered as one static document, [`10-pulse-resumo.html`](./10-pulse-resumo.html):
+### Legenda de maturidade
+
+- **Implementado:** comportamento presente e executável no código atual.
+- **Estruturado:** rota, tipo, store, diretório ou contrato visual preparado, mas sem comportamento de produto completo.
+- **Planejado:** direção definida para implementação futura.
+- **Futuro:** possibilidade posterior, ainda dependente de decisões técnicas ou de segurança.
+
+## Stack e configurações de referência
+
+- **Desktop/runtime:** Tauri 2, Rust 2021 e `@tauri-apps/api`.
+- **Frontend:** Vue 3, TypeScript estrito, Vite e Vue Router.
+- **Estilos e componentes:** Tailwind CSS v4 via `@tailwindcss/vite`, tokens em `src/styles/index.css` e componentes no estilo shadcn-vue conforme `components.json` (`new-york`, aliases `@/*`).
+- **Estado e utilitários:** Pinia, VueUse, `clsx`, `tailwind-merge` e `class-variance-authority`.
+- **Iconografia:** Lucide para interface e Simple Icons para marcas/plataformas.
+- **Resolução de imports:** alias `@` aponta para `src/` em `vite.config.ts` e `tsconfig.json`.
+- **Servidor Vite:** porta `1420`, com `strictPort: true`.
+
+## Arquitetura implementada
 
 ```mermaid
 flowchart LR
-  Browser[Browser] --> UI[Semantic HTML + CSS]
-  UI --> Controller[Inline JavaScript controller]
-  Controller --> State[In-memory mock state]
-  State --> Renderer[View renderers]
-  Renderer --> UI
+  Entry["index.html + src/main.ts"] --> App["Vue App"]
+  App --> Shell["AppShell\nSidebar + MainContent"]
+  Shell --> Router["Vue Router\nviews e rotas de dispositivo"]
+  Router --> Components["componentes Vue\nUI e placeholders"]
+  Components --> Stores["Pinia\napp, devices, transfers"]
+  Stores --> Mock["estado mockado\nem memória"]
+  Settings["SettingsView"] --> Bridge["useRustBridge\n@tauri-apps/api/core"]
+  Bridge -->|invoke greet| Tauri["Tauri 2"]
+  Tauri --> Rust["src-tauri/src/lib.rs\ncommand greet"]
 ```
 
-- **Presentation:** semantic HTML, CSS custom properties, responsive layouts, and accessible labels.
-- **Controller:** inline JavaScript handles navigation, device selection, approvals, pause/resume actions, Clipboard actions, and toast feedback.
-- **State:** `views`, `deviceData`, and `clipboardData` are plain in-memory objects. Reloading the page resets all state.
-- **Runtime:** no package manager, framework, backend, persistence layer, or external assets are required.
+### Frontend
 
-## 3. Visual Design System
+- `src/main.ts` cria o app Vue, instala Pinia e Vue Router e importa os estilos globais.
+- `src/App.vue` delega para `AppShell.vue`.
+- `src/components/app/` contém o shell persistente: sidebar e cabeçalho/conteúdo.
+- `src/views/` contém as páginas de Início, Transferências, Histórico, Configurações e contexto de dispositivo.
+- `src/components/device/`, `media/` e `transfer/` contêm composições de dados demonstrativos e placeholders.
+- `src/components/ui/` contém os componentes reutilizáveis mínimos `Button`, `Badge` e `BrandMark`.
+- `src/styles/index.css` importa Tailwind CSS v4, define tokens Pulse e os breakpoints do shell.
 
-The visual language is a quiet local-network workspace: warm paper surfaces, dark ink, cool network signals, and one clear action color. The hero thesis is **“the local network is in motion”**: current network state leads, while the greeting and explanatory copy remain secondary. New UI must reuse these tokens instead of adding arbitrary colors.
+### Rotas
 
-### Color Tokens
+O router usa `createWebHistory()` e define:
 
-| Role | Token | Value | Usage |
-| --- | --- | --- | --- |
-| Outer canvas | — | `#d7d2ca` | Browser background around the app |
-| App surface | `--bg` | `#f2eee7` | Main workspace background |
-| Paper surface | `--paper` | `#fbfaf7` | Footer and raised paper areas |
-| Text | `--ink` | `#202b30` | Headings and primary copy |
-| Muted text | `--muted` | `#7f8b8d` | Metadata and supporting copy |
-| Divider | `--line` | `#d8d7cf` | Rules and low-emphasis borders |
-| Network | `--navy`, `--sky` | `#203e50`, `#cde6ed` | Device identity and transfer surfaces |
-| Safe/complete | `--green`, `--mint` | `#477e64`, `#d9eadc` | Trusted, received, ready, or approved states |
-| Primary action | `--coral` | `#b84435` | Send, links, brand mark, and attention affordances |
-| Attention | `--yellow`, `--yellow-ink` | `#f6df9d`, `#886728` | Pending requests and sensitive-code context |
+| Rota | Estado |
+| --- | --- |
+| `/` | `HomeView`, implementado como fundação/mock |
+| `/transfers` | `TransfersView`, estrutura inicial |
+| `/history` | `HistoryView`, estado vazio sem persistência |
+| `/device/:id` | `DeviceView`, contexto por dispositivo |
+| `/device/:id/overview` | rota preparada |
+| `/device/:id/files` | rota preparada |
+| `/device/:id/clipboard` | rota preparada |
+| `/device/:id/media` | rota preparada com placeholder específico |
+| `/device/:id/control` | rota preparada |
+| `/settings` | teste da bridge e dados da base |
 
-The approval action uses `--green`; coral is not used to imply a destructive approval. Progress uses the cool teal accents already defined in the stylesheet (`#65aebe` and `#4c8793`).
+### Estado atual
 
-### Typography
+Pinia tem três stores, todos efêmeros e inicializados com dados locais:
 
-- **Family:** `Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`; do not add a remote font dependency for this prototype.
-- **Display:** page titles use 29px, weight 650, line-height 1.04, and tight tracking (`-.065em`).
-- **Section labels:** 12px uppercase with `.12em` tracking; labels describe real content, not decoration.
-- **Body and controls:** 14px body text; controls and supporting copy range from 11–13px. Mobile summary metadata must remain at least 11px.
-- **Sensitive values:** use `ui-monospace, SFMono-Regular, Menlo, monospace` for codes only.
-- **Copy:** user-facing text stays in Brazilian Portuguese, uses sentence case, active verbs, and names the action the person controls.
+- `app`: versão `0.1.0`, estado da bridge e chamada `testBridge()`.
+- `devices`: três dispositivos mockados, `selectedDeviceId`, dispositivo selecionado, lista online e `selectDevice()`.
+- `transfers`: dois registros mockados; `activeTransfers` exclui somente itens com status `complete`.
 
-### Type Roles and Signature
+Não há persistência, hidratação, sincronização com rota/eventos, mutation de transferências, histórico ou fonte nativa de dispositivos. Recarregar a aplicação reinicia os stores.
 
-- **Display role:** `--font-display` (`Avenir Next`, `Trebuchet MS`, `ui-rounded`) for the hero and page titles. It is intentionally more personable than the body face while remaining system-local.
-- **Body role:** `--font-body` keeps dense status and explanatory copy quiet and legible.
-- **Utility role:** `--font-utility` is reserved for sensitive codes and technical values; never use it for normal prose.
-- **Signature element:** the open coral orbit with a green online node in the hero represents a local pulse: one connected network with activity moving through it. Keep this motif in the hero/brand zone only; do not repeat it as decoration in every card.
+### Bridge Tauri ↔ Rust
 
-### Layout, Shape, and Interaction Rules
+`useRustBridge()` detecta `window.__TAURI_INTERNALS__`:
 
-- Desktop workspace: max 1180px wide, with a 76px header, 20px/32px main padding, and a `1fr + 329px` summary split.
-- At 940px, summary content becomes one column and Clipboard side content collapses. At 700px, metrics become a 2×2 grid, device directories become horizontal, and the shell uses 12px radius.
-- Use 6–12px control/card radii; reserve the 17px radius for the outer app shell. Dividers are 1px; major section rules are 2px.
-- Hover and active states use the warm selection surface (`#e7e3db`). Keyboard focus always uses a 3px `#83b8c5` outline with offset.
-- Motion stays subtle (roughly `.15–.2s`) and should be disabled or shortened under `prefers-reduced-motion`.
+- no navegador, retorna uma mensagem de prévia web marcada como demo;
+- no Tauri, chama `invoke<string>("greet", { name })`;
+- `SettingsView` expõe esse teste e mostra `idle`, `loading`, `success` ou `error`.
 
-### State Rules
+Em Rust, `src-tauri/src/lib.rs` registra apenas:
 
-| State | Visual treatment | Copy behavior |
-| --- | --- | --- |
-| Trusted/ready | `--green` with `--mint` or a green status mark | Say what is ready or trusted |
-| In progress | `--accent-teal` on `--surface-transfer` with a measurable progress value | Include destination and amount transferred |
-| Needs attention | `--yellow`/`--yellow-ink` on `--surface-attention` | Name the decision and its source |
-| Destructive/refused | Keep secondary and neutral; never use the approval green | Say exactly what was refused or removed |
-| Empty | Quiet surface with a clear next action | Explain what the person can do next |
-| Error/offline | Add an explicit error or offline state; do not rely on color alone | State what failed and how to recover |
+```rust
+#[tauri::command]
+fn greet(name: &str) -> String
+```
 
-Every state must have text in addition to color, a visible keyboard focus treatment, and a touch target large enough for mobile use. Add loading and offline variants before connecting real devices.
+Não há comandos de domínio, eventos, listeners, sockets, processos auxiliares ou serialização de mensagens de produto.
 
-## 4. Views and Responsibilities
+## Shell Tauri e configuração
 
-- **Resumo:** shows pending approvals, active transfers, recent activity, online devices, and privacy guidance.
-- **Dispositivos:** selects a device and exposes Overview and Clipboard subviews.
-- **Histórico:** presents recent transfer events.
-- **Clipboard:** composes text, links, and local image previews; sensitive codes remain masked until explicitly revealed.
+- Tauri `2.8.0` no runtime e CLI `2.11.4` no projeto.
+- Entrada Rust em `src-tauri/src/main.rs`, delegando para `pulse_lib::run()`.
+- `beforeDevCommand`: `npm run dev`; `devUrl`: `http://localhost:1420`.
+- `beforeBuildCommand`: `npm run build`; `frontendDist`: `../dist`.
+- Janela `main`: `1280 × 800`, mínimo `960 × 640`, redimensionável e não fullscreen.
+- `withGlobalTauri` é `false`.
+- `src-tauri/capabilities/default.json` concede somente `core:default`; não há capabilities para rede, arquivos, notificações ou controle.
+- `csp` está `null` na configuração atual; isso é uma condição da fundação e deve ser revisada antes de distribuição.
+- `bundle.active` está `false`; o shell é executável em desenvolvimento, mas o empacotamento não está habilitado como entrega atual.
 
-## 5. Key Flows
+## Módulos preparados no Rust
 
-Navigation updates the visible `pulse-view` and document title. Device selection calls `renderDevice`, which updates device metadata, transfer state, history, and Clipboard contents. Approval or rejection removes a pending request and updates summary counts. Clipboard sends prepend an item and retain the six newest entries. File selection currently reports a prepared item but does not upload it.
+Os diretórios abaixo existem com `.gitkeep`, mas não têm implementação. Eles são pontos de organização, não módulos ativos:
 
-## 6. Security and Production Boundaries
+| Módulo | Responsabilidade planejada |
+| --- | --- |
+| `discovery/` | Encontrar e acompanhar presença de dispositivos na rede local. |
+| `pairing/` | Pareamento explícito, identidade, confiança e revogação. |
+| `device/` | Registro, metadados e estado dos dispositivos conhecidos. |
+| `protocol/` | Contratos de mensagens, capacidades e transporte entre peers. |
+| `transfer/` | Sessões de arquivos/pastas, fila, progresso, pausa e retomada. |
+| `clipboard/` | Conteúdo de Clipboard e sincronização/envio autorizado. |
+| `media/` | Estado e controle de mídia sob capability específica. |
 
-The mock data is safe for local demonstration only. A production implementation needs authenticated device pairing, encrypted local transport, explicit authorization per transfer, file-size/type limits, bounded Clipboard retention, and server-side validation. Never place credentials or private network data in this static file. Revoke generated object URLs after image previews are no longer needed.
+## Direção arquitetural planejada
 
-## 7. Evolution Plan
+```mermaid
+flowchart LR
+  UI["Vue UI + Pinia"] --> Commands["commands/eventos Tauri"]
+  Commands --> Domain["serviços de domínio Rust"]
+  Domain --> Trust["device + pairing\nidentidade e capabilities"]
+  Domain --> Discovery["discovery local"]
+  Domain --> Protocol["protocol + transport"]
+  Protocol --> Peer["dispositivo pareado\nrede local direta"]
+  Domain --> Effects["transfer, clipboard, media,\nnotifications, commands"]
+  Effects --> Events["eventos e estado observado"]
+  Events --> UI
+```
 
-If the prototype becomes a product, split the document into view components, a state store, and a transport adapter. Keep the UI independent from discovery and transfer protocols so WebSocket, WebRTC, or another local transport can be tested separately. Add automated tests for state transitions and end-to-end tests for navigation, approvals, transfers, Clipboard masking, and responsive behavior.
+### Limite de camadas
+
+1. **UI Vue:** apresenta estado, solicita intenções e não conhece detalhes de sockets, criptografia ou formato de pacotes.
+2. **Bridge Tauri:** expõe comandos e eventos mínimos, validando entrada e capability antes de encaminhar.
+3. **Domínio Rust:** coordena dispositivos, confiança, sessões e efeitos locais.
+4. **Discovery/transport/protocol:** descobre peers e move mensagens diretamente pela rede local.
+5. **Serviços de recurso:** implementam transferências, Clipboard, mídia, notificações e comandos sob autorização.
+
+A UI deve depender de modelos de domínio estáveis e eventos, não de uma implementação específica de transporte. A escolha concreta entre UDP/mDNS, TCP, WebSocket ou outra combinação ainda é planejada; não está definida no código atual.
+
+## Modelo de capabilities — direção
+
+Capabilities são uma proposta de autorização por dispositivo, não um modelo já implementado. A intenção é separar “o dispositivo está pareado” de “este recurso pode ser usado”. Exemplos iniciais:
+
+| Capability | Escopo pretendido |
+| --- | --- |
+| `files.send` / `files.receive` | Enviar ou receber arquivos e pastas |
+| `clipboard.read` / `clipboard.write` | Ler ou escrever Clipboard remoto |
+| `text.send` / `links.send` | Compartilhar conteúdo leve |
+| `media.read` / `media.control` | Observar ou controlar mídia |
+| `notifications.receive` | Receber avisos locais |
+| `commands.execute` | Executar comandos previamente autorizados |
+
+Cada capability deve ter, no mínimo, identidade do dispositivo, estado (`available`, `requested`, `granted`, `denied` ou `revoked`), direção quando aplicável e registro da decisão. O conjunto final, o formato persistido e a UX de aprovação ainda precisam ser definidos antes da implementação.
+
+## Direção por domínio
+
+### Discovery e pairing — planejado
+
+Discovery deve localizar candidatos na rede local e expor presença sem conceder acesso. Pairing deve exigir ação explícita, apresentar identidade verificável e criar uma relação confiável revogável. Nenhum desses fluxos existe hoje.
+
+### Transfer — planejado
+
+O serviço deve tratar arquivos e pastas como sessões observáveis, com origem, destino, estado, progresso, erro e cancelamento. Pausa/retomada, limites de tamanho/tipo, colisões de nome e retomada após falha precisam de decisões próprias. O `Transfer` atual é apenas um tipo e um mock visual.
+
+### Clipboard, texto e links — planejado
+
+Começar por conteúdo textual e links, com envio explícito e políticas de retenção local. Leitura/escrita automática e sincronização contínua só devem existir depois de uma capability correspondente. Hoje a aba existe apenas como rota.
+
+### Mídia, controle e comandos — futuro planejado
+
+São integrações de maior impacto e dependem de capabilities específicas, confirmação, escopo limitado e registro de execução. O repositório só possui a rota e, para Mídia, um placeholder.
+
+### Notificações e histórico — planejado
+
+Notificações devem ser efeitos locais derivados de eventos de domínio. Histórico deve persistir eventos relevantes, incluindo decisões de confiança e resultados, sem confundir log técnico com conteúdo sensível. Não há armazenamento nem eventos hoje.
+
+## Segurança e limites de produção
+
+A direção é local e sem cloud, mas local não significa automaticamente confiável. Antes de qualquer fluxo real, a arquitetura precisa definir autenticação de peers, pareamento seguro, transporte criptografado, autorização por capability, validação de payloads, limites de arquivos, retenção de Clipboard, tratamento de caminhos e revogação. Não declarar “criptografia ativa”, “dispositivo confiável” ou “transferência concluída” enquanto essas camadas não existirem.
+
+Não adicionar credenciais, dados privados de rede ou lógica de transferência de produção ao mock atual. Capabilities Tauri extras só devem ser adicionadas junto do recurso que as exige e com o menor escopo possível.
+
+## Sequência técnica sugerida
+
+1. Definir modelos de domínio e eventos sem acoplamento à UI.
+2. Implementar discovery e ciclo de vida do dispositivo.
+3. Implementar pairing/trust e o modelo de capabilities.
+4. Isolar e testar o transporte/protocolo local.
+5. Conectar transferências e conteúdo leve à bridge.
+6. Adicionar persistência, histórico, notificações e integrações avançadas.
+
+Cada etapa deve manter um modo mockado honesto para desenvolvimento visual e adicionar testes de estado antes de conectar efeitos reais.

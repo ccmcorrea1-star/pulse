@@ -1,44 +1,97 @@
-# Product
+# Pulse — Produto
 
-<!-- impeccable:product-schema 1 -->
+## O que é
 
-## Platform
+Pulse é um aplicativo desktop Linux para integrar dispositivos próximos diretamente pela rede local. A direção do produto é semelhante à de ferramentas como LocalSend e KDE Connect, mas com uma central de controle compacta para descobrir e parear dispositivos confiáveis, compartilhar conteúdo e acompanhar o estado dessas interações sem depender de cloud.
 
-adaptive
+O repositório está na versão `0.1.0` e contém a fundação navegável do aplicativo. A rede local, os dispositivos e as transferências exibidos hoje são dados demonstrativos; não há descoberta, pareamento ou transporte de dados ativo.
 
-## Users
+## Objetivos
 
-Pessoas que administram os próprios dispositivos ou uma pequena rede doméstica ou de equipe. Elas precisam decidir rapidamente o que pode entrar, sair ou aguardar aprovação entre dispositivos conectados à mesma rede local.
+- Tornar claro quais dispositivos estão disponíveis e qual dispositivo está em contexto.
+- Permitir compartilhamento local e direto de arquivos, pastas, texto e links.
+- Dar controle explícito sobre confiança, autorização e estado das transferências.
+- Reunir Clipboard, mídia, notificações, controle remoto e comandos em uma experiência coerente por dispositivo.
+- Manter o produto local-first: sem cloud como requisito para a comunicação entre dispositivos.
 
-## Product Purpose
+## Público e situações de uso
 
-Pulse permite compartilhar arquivos e conteúdo de Clipboard entre dispositivos confiáveis na rede local. O objetivo é dar visibilidade e controle rápido sobre transferências, solicitações e conteúdos recentes em desktop e mobile.
+O público principal é quem administra os próprios dispositivos — ou uma pequena rede doméstica/de equipe — e quer mover conteúdo entre computador, telefone e outros endpoints próximos. Os usos previstos incluem:
 
-## Positioning
+- enviar um arquivo ou pasta para um dispositivo pareado;
+- compartilhar texto ou link rapidamente;
+- acompanhar, pausar e retomar transferências;
+- sincronizar ou enviar itens do Clipboard com controle por dispositivo;
+- consultar mídia, controlar um dispositivo e executar comandos locais quando essas capacidades forem autorizadas.
 
-Em vez de depender de um serviço remoto para uma troca pontual, o Pulse centraliza a decisão e o acompanhamento de transferências entre dispositivos confiáveis na própria rede local.
+## Princípios de produto
 
-## Operating Context
+- **Local e direto:** a comunicação entre dispositivos deve acontecer na rede local, sem um serviço remoto intermediário como requisito.
+- **Confiança explícita:** um dispositivo não deve ganhar acesso apenas por aparecer na rede; pareamento, autorização e revogação precisam ser compreensíveis.
+- **Estado visível:** origem, destino, progresso, erro e resultado devem ser legíveis sem depender somente de cor.
+- **Capacidade por dispositivo:** cada recurso pode ser oferecido, solicitado, concedido ou revogado separadamente.
+- **Progresso honesto:** a interface deve identificar dados mockados e estados ainda não conectados ao backend.
 
-O uso acontece ao alternar entre dispositivos pessoais ou de uma equipe pequena conectados à mesma rede. Os fluxos incluem aprovar ou recusar solicitações, acompanhar e pausar transferências, selecionar um dispositivo, enviar arquivos, textos, links e imagens, e consultar o histórico e o Clipboard recente.
+## Escopo atual do repositório
 
-## Capabilities and Constraints
+### Implementado
 
-- Aplicativo planejado em Tauri para desktop e mobile.
-- O repositório atual é um mockup estático em HTML, CSS e JavaScript, com estado local em memória e dados demonstrativos; não realiza transferências nem se conecta à rede.
-- O mockup cobre Resumo, Dispositivos, Histórico e Clipboard, além de seleção de dispositivos, aprovação ou recusa, pausa ou retomada e mensagens de feedback.
-- O produto está aberto a mudanças; compromissos adicionais de privacidade, criptografia, marca e acessibilidade ainda não estão definidos.
-- Não usar credenciais, dados privados de rede ou lógica de transferência de produção neste protótipo.
+- Shell desktop Tauri 2 com uma janela principal configurada para `1280 × 800`, mínimo de `960 × 640`.
+- Frontend Vue 3 + TypeScript + Vite, montado por `src/main.ts`.
+- Navegação global para `Início`, `Transferências`, `Histórico` e `Configurações`.
+- Lista mockada com três dispositivos, estados online/offline e links para o contexto de cada dispositivo.
+- Rotas aninhadas de dispositivo para `Visão geral`, `Arquivos`, `Clipboard`, `Mídia` e `Controle`.
+- Stores Pinia efêmeras para aplicação, dispositivos e transferências.
+- Dois registros mockados de transferência, incluindo progresso e fila visual na página inicial.
+- Tela de configuração capaz de testar a comunicação Vue ↔ Rust por meio do command `greet`.
+- Interface dark, compacta e responsiva em desktop, com adaptação básica para larguras menores.
 
-## Evidence on Hand
+### Estruturado/preparado
 
-- Mockup funcional: `10-pulse-resumo.html`.
-- Documento de arquitetura e comportamento atual: `SYSTEM-DESIGN.md`.
-- Não há backend, transporte real, persistência, provas externas, depoimentos ou ativos de marca fornecidos.
+- O router já reserva os destinos das áreas funcionais por dispositivo.
+- `src-tauri/src/` contém diretórios preparados para `discovery`, `pairing`, `device`, `protocol`, `transfer`, `clipboard` e `media`, ainda sem implementação de domínio.
+- O modelo TypeScript já nomeia dispositivos, estados de transferência e estado da bridge, mas esses tipos ainda sustentam apenas dados locais.
+- A configuração de capabilities Tauri existe e hoje concede somente `core:default`.
 
-## Product Principles
+### Ainda não implementado
 
-- Dar controle explícito à pessoa antes de movimentar conteúdo entre dispositivos.
-- Tornar o estado da rede e das transferências fácil de entender rapidamente.
-- Manter os fluxos locais e entre dispositivos confiáveis como contexto central do produto.
-- Distinguir claramente comportamento demonstrativo de capacidades reais de produção.
+- Descoberta de dispositivos na rede local.
+- Pareamento, identidade, confiança e revogação.
+- Transferência real de arquivos ou pastas, incluindo seleção, fila, pausa, retomada e cancelamento.
+- Clipboard entre dispositivos, envio de texto/links e histórico persistente.
+- Notificações, mídia, controle remoto e comandos.
+- Persistência local, sincronização, eventos Tauri e qualquer protocolo de rede.
+
+## Funcionalidades e roadmap
+
+O roadmap abaixo descreve direção funcional. Ele não representa código já disponível.
+
+| Capacidade | Estado atual | Próxima direção |
+| --- | --- | --- |
+| Dispositivos | Lista mockada e rotas de contexto | Discovery local, detalhes e atualização de presença |
+| Pareamento e confiança | Não existe; apenas estrutura de módulos | Pareamento explícito, identidade verificável e permissões por capacidade |
+| Arquivos e pastas | Aba reservada; sem picker ou transporte | Envio local direto com progresso, fila, pausa e retomada |
+| Texto e links | Não há fluxo funcional | Tratar como conteúdo leve dentro do envio local |
+| Clipboard | Aba reservada; sem leitura ou escrita remota | Compartilhamento controlado de texto, links e tipos suportados |
+| Transferências | Preview mockado no Início e rota vazia | Serviço de transferência, estados reais e cancelamento/retomada |
+| Histórico | Rota e estado vazio | Registro local de eventos, origem, destino e resultado |
+| Notificações | Não existe | Avisos locais para pedidos, conclusão e falha |
+| Mídia | Rota com placeholder | Leitura e controle de mídia sob capability explícita |
+| Controle e comandos | Rotas reservadas | Ações remotas limitadas, auditáveis e autorizadas |
+
+### Ordem sugerida
+
+1. Discovery local e pareamento confiável.
+2. Modelo de dispositivos, capabilities e eventos.
+3. Transferência de arquivos/pastas e conteúdo leve.
+4. Clipboard, notificações e histórico persistente.
+5. Mídia, controle e comandos, depois de definidos os limites de segurança.
+
+Os detalhes técnicos dessa sequência pertencem ao [SYSTEM-DESIGN.md](SYSTEM-DESIGN.md); as decisões de interface pertencem ao [DESIGN.md](DESIGN.md).
+
+## Limites e não objetivos atuais
+
+- O projeto não oferece integração em cloud nem precisa dela para a direção local-first.
+- A implementação atual não deve ser tratada como prova de segurança, criptografia ou transporte de produção.
+- Não há suporte funcional para Android, iOS ou Windows neste repositório; esses sistemas aparecem apenas como plataformas previstas no tipo de dispositivo e na direção de interoperabilidade.
+- `10-pulse-resumo.html` é um protótipo HTML legado e não é o ponto de entrada do app atual.

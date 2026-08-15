@@ -1,181 +1,133 @@
----
-name: Pulse
-description: Central de controle local para transferências entre dispositivos confiáveis.
-colors:
-  canvas: "#080b0e"
-  workspace: "#101519"
-  surface: "#12181d"
-  surface-strong: "#171d22"
-  ink: "#f2f5f5"
-  muted: "#9aa4ad"
-  divider: "#222a31"
-  selection: "#1d2329"
-  signal-green: "#39d463"
-  signal-green-dark: "#1c9e46"
-  signal-blue: "#39b9ed"
-  signal-yellow: "#e4b74e"
-  attention-surface: "#252016"
-  transfer-surface: "#121b22"
-  focus: "#6be38a"
-typography:
-  display:
-    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif'
-    fontSize: "28px"
-    fontWeight: 600
-    lineHeight: 1.1
-    letterSpacing: "-0.04em"
-  headline:
-    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif'
-    fontSize: "20px"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "-0.02em"
-  body:
-    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif'
-    fontSize: "14px"
-    lineHeight: 1.45
-  label:
-    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif'
-    fontSize: "12px"
-    fontWeight: 600
-    letterSpacing: "0.1em"
-  mono:
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace'
-    fontSize: "12px"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "0.08em"
-rounded:
-  control: "8px"
-  panel: "10px"
-  shell: "16px"
-spacing:
-  control: "10px"
-  section: "16px"
-  layout: "20px"
-  shell: "29px"
-components:
-  panel:
-    backgroundColor: "{colors.surface}"
-    border: "1px solid {colors.divider}"
-    rounded: "{rounded.panel}"
-  signal-button:
-    backgroundColor: "{colors.signal-green}"
-    textColor: "#07100a"
-    rounded: "{rounded.control}"
-  ghost-button:
-    backgroundColor: "{colors.surface-strong}"
-    textColor: "{colors.ink}"
-    border: "1px solid {colors.divider}"
-    rounded: "{rounded.control}"
----
+# Pulse — Design de UI/UX
 
-# Design System: Pulse
+Este é o documento principal para decisões de interface e experiência do Pulse. Ele descreve primeiro o que existe hoje em `src/` e, quando necessário, registra a direção para áreas ainda não implementadas. O roadmap funcional fica no [PRODUCT.md](PRODUCT.md); a arquitetura fica no [SYSTEM-DESIGN.md](SYSTEM-DESIGN.md).
 
-## Overview
+## Direção visual
 
-**Creative North Star: “Central de comando da rede local”.**
+O Pulse é uma central de comando local: dark, compacta e desktop-first. A interface deve transmitir uma estação operacional calma, com separadores finos, superfícies discretas e sinais de estado claros. O verde identifica ação/estado positivo; azul identifica informação ou transferência; amarelo chama atenção para uma decisão. Nenhuma cor deve carregar significado sozinha.
 
-Pulse é um painel desktop escuro para acompanhar conteúdo em movimento entre dispositivos confiáveis. A referência visual é uma estação técnica silenciosa: shell preto-azulado, linhas finas, superfícies quase foscas, tipografia de sistema precisa e verde luminoso reservado para conexão, progresso e ação confirmada.
+O copy da interface é em português brasileiro, direto e orientado à ação. Estados mockados devem continuar explicitamente identificados como mock, estrutura inicial ou rota preparada.
 
-O primeiro viewport deve provar o mecanismo em uso: um dispositivo selecionado no cabeçalho, navegação lateral persistente, envio rápido, transferência em andamento, atividade recente e os sinais operacionais do dispositivo ao lado. A interface pode ser densa, mas nunca deve parecer um terminal ou uma parede de cards.
+## Estrutura implementada
 
-### Key characteristics
+### Shell e navegação
 
-- Densidade operacional serena: linhas de lista e painéis organizam a leitura sem excesso de decoração.
-- Verde como sinal vivo: conexão, status pronto, progresso e foco de ação.
-- Azul/ciano para conteúdo recebido e superfície de mídia; amarelo somente para atenção pendente.
-- Uma janela externa elevada sobre um canvas quase preto; profundidade interna vem de bordas e tons, não de sombras repetidas.
-- Copy em português brasileiro, direta e acompanhada de estado textual; cor sozinha nunca carrega significado.
+- `AppShell` compõe a aplicação em sidebar + área de conteúdo.
+- A sidebar global contém a marca Pulse, `Início`, `Transferências`, `Histórico`, a lista de dispositivos e `Configurações`.
+- A lista de dispositivos é alimentada pelo store mockado e usa a rota `/device/:id` como contexto selecionado.
+- A área principal tem cabeçalho com o contexto `rede local / ambiente de base`, o estado `shell pronto` e o acesso às configurações.
+- A navegação usa Vue Router; não há abas implementadas no HTML legado como fonte paralela.
 
-## Colors
+### Contexto de dispositivo
 
-### Signal palette
+Cada dispositivo tem uma página própria com estado online/offline, retorno para o Início e abas horizontais:
 
-- **Verde Pulse** (`#39d463`): conectado, ativo, concluído, progresso e foco positivo.
-- **Azul recebido** (`#39b9ed`): conteúdo recebido, Clipboard e estados de sincronização.
-- **Amarelo de atenção** (`#e4b74e`): aprovação pendente, rede interrompida ou decisão necessária.
+`Visão geral` · `Arquivos` · `Clipboard` · `Mídia` · `Controle`
 
-### Neutral palette
+As cinco rotas existem. Hoje, as seções usam `DeviceSectionView`; Mídia também mostra `MediaPlaceholder`. Isso é contrato de navegação e composição, não implementação dessas capacidades.
 
-- **Canvas** (`#080b0e`) e **workspace** (`#101519`) formam o campo escuro contínuo.
-- **Surface** (`#12181d`) e **surface strong** (`#171d22`) distinguem painéis e controles por tom.
-- **Ink** (`#f2f5f5`), **muted** (`#9aa4ad`) e **divider** (`#222a31`) definem uma hierarquia de alto contraste sem branco estourado.
+### Views atuais
 
-### Named rules
+| View | Papel atual |
+| --- | --- |
+| `HomeView` | Apresenta a fundação, as fronteiras futuras, dispositivos mockados e preview de transferências mockadas. |
+| `TransfersView` | Reserva a fila de transferências; ações de envio e pausa estão desabilitadas. |
+| `HistoryView` | Reserva a leitura de histórico; mostra estado vazio sem persistência. |
+| `DeviceView` + `DeviceSectionView` | Oferece o contexto do dispositivo e as cinco abas preparadas. |
+| `SettingsView` | Expõe o teste da bridge Vue ↔ Rust e os dados da base instalada. |
 
-**The Signal Has a Label Rule.** Verde, azul e amarelo só aparecem com texto, valor, ícone ou ação adjacente que explique o estado.
+## Layout e responsividade
 
-**The Quiet Surface Rule.** O produto deve continuar legível sem brilho, gradiente ou sombra interna; contraste vem de superfície, borda e espaçamento.
+- O shell ocupa no mínimo a altura da janela e usa uma sidebar de `252px`.
+- A sidebar reduz para `218px` até `920px`.
+- A área de conteúdo é fluida, com scroll vertical próprio e padding horizontal de `24px` (`32px` a partir de `sm`, `40px` a partir de `lg`).
+- Até `680px`, o shell vira fluxo vertical; a lista de dispositivos da sidebar rola horizontalmente e cada item mantém largura mínima de `170px`.
+- O `body` mantém largura mínima de `320px`.
+- `useResponsive` já fornece os media queries de `920px` e `680px`, mas o comportamento atual é principalmente controlado pelo CSS e não há lógica de domínio dependente desse composable.
 
-## Typography
+O layout deve reorganizar o conteúdo sem esconder estado importante. Em telas menores, preservar nomes, status, destino e feedback textual.
 
-Inter ou a sans-serif de sistema conduz toda a UI. Nomes de arquivos e títulos usam peso médio; metadados usam tamanho menor e cinza azulado; valores sensíveis e técnicos usam mono apenas quando isso aumenta a leitura.
+## Tokens visuais
 
-- Cabeçalho do dispositivo: 28px / 600.
-- Títulos de painel: 16–20px / 500–600.
-- Corpo: 14–16px / 400.
-- Metadados: 12–14px / 400.
-- Rótulos de seção e dispositivos: 11–12px, espaçamento aberto.
+A fonte de verdade dos tokens é [`src/styles/index.css`](src/styles/index.css). Classes Tailwind usam esses valores por meio de `@theme inline`.
 
-Não usar fontes display decorativas, texto em caixa alta como padrão ou monospace como fantasia técnica.
+### Cor
 
-## Layout
+| Token CSS | Valor | Uso |
+| --- | --- | --- |
+| `--pulse-background` | `#080b0e` | Canvas e fundo geral |
+| `--pulse-surface` | `#12181d` | Sidebar e painéis |
+| `--pulse-surface-hover` | `#171d22` | Hover de superfícies |
+| `--pulse-surface-raised` | `#1c2227` | Item ativo e controles elevados |
+| `--pulse-border` | `#222a31` | Bordas e divisores |
+| `--pulse-foreground` | `#f2f5f5` | Texto principal |
+| `--pulse-muted` | `#9aa4ad` | Texto secundário e metadados |
+| `--pulse-muted-strong` | `#c1c8cc` | Texto secundário com mais contraste |
+| `--pulse-accent` / `--pulse-success` | `#39d463` | Ação e estado positivo |
+| `--pulse-accent-strong` | `#6be38a` | Hover e foco positivo |
+| `--pulse-warning` | `#e4b74e` | Atenção e fila mockada |
+| `--pulse-destructive` | `#ed7567` | Falha ou ação destrutiva futura |
+| `--pulse-info` | `#39b9ed` | Informação e transferência |
 
-O shell tem duas colunas: rail lateral de aproximadamente 263px e workspace fluido. O rail ocupa toda a altura e concentra marca, navegação, dispositivos, configurações e perfil. O cabeçalho do workspace tem cerca de 126px e mostra o dispositivo selecionado, plataforma, conexão, bateria, rede local e menu de contexto.
+### Forma, espaçamento e tipografia
 
-Logo abaixo, abas de ferramenta ocupam uma faixa compacta com régua verde no item ativo. O resumo usa grid assimétrico: conteúdo principal fluido à esquerda e coluna lateral de aproximadamente 417px à direita. O conteúdo principal segue a ordem envio rápido → transferência → atividade; a coluna lateral segue mídia → status → ações rápidas.
+- Controle: raio `8px`; painel: `10px`; shell: `16px`.
+- Espaçamentos nomeados: controle `10px`, seção `16px`, layout `20px`, shell `29px`.
+- Corpo: Inter ou sans-serif de sistema, `14px` com line-height `1.45`.
+- Valores técnicos e percentuais podem usar `ui-monospace`; não usar monospace como decoração.
+- O foco visível usa outline de `2px`, offset de `3px`, em `--pulse-accent-strong`.
+- Sombras, gradientes e brilho não são necessários para criar hierarquia; preferir tom, borda e espaço.
 
-Em até 1180px, o rail encolhe e o grid perde espaço lateral. Em até 920px, o rail vira uma faixa horizontal, os dispositivos ficam roláveis e o conteúdo passa para uma coluna. Em até 620px, controles e painéis empilham; a faixa de abas e os dispositivos mantêm rolagem horizontal sem provocar overflow no documento.
+## Componentes e iconografia
 
-## Elevation & depth
+### Componentes existentes
 
-Somente o shell externo tem sombra persistente (`0 26px 90px rgba(0,0,0,.56)`). Painéis internos usam borda de 1px e diferença tonal. O foco usa halo verde sutil; o dropzone ativo troca borda e fundo juntos. Não aplicar sombra individual em cada painel.
+- `Button.vue`: variantes `default`, `secondary`, `ghost` e `outline`; tamanhos `default`, `sm` e `icon`.
+- `Badge.vue`: variantes `default`, `muted`, `warning` e `info`.
+- `BrandMark.vue`: atualmente renderiza o ícone Linux de `simple-icons`.
+- `DeviceList.vue` e `TransferPreview.vue`: componentes de composição para os dados demonstrativos.
+- `MediaPlaceholder.vue`: estado explícito de área futura de mídia.
 
-## Components
+### Regras de ícones
 
-### Navigation
+- Usar Lucide para ações, navegação e estados de interface.
+- Usar Simple Icons apenas para marcas ou plataformas, como o Linux atual da marca/base.
+- Não introduzir emoji ou glifos Unicode como substitutos de ícones.
+- Ícone deve vir acompanhado de texto ou de um nome acessível quando representar uma ação.
+- Não criar uma linguagem de ícones diferente para cada view; manter traço e peso consistentes.
 
-O item ativo do rail recebe fundo `#1c2227` e uma régua verde de 2px. Abas internas usam fundo escuro e uma linha verde inferior; não usar pílulas para navegação principal.
+### Estados
 
-### Panels
+Estados já representados na UI:
 
-Painéis têm fundo `#12181d`, borda `#222a31` e raio de 10px. Listas internas usam linhas horizontais. O produto aceita painéis porque a referência é uma estação de trabalho, mas cada painel deve conter uma unidade operacional clara, nunca apenas um título e uma decoração.
+- fundação inicial / shell pronto;
+- mock local sem networking;
+- dispositivo online ou offline, sempre com texto;
+- transferência em andamento ou na fila, sempre com percentual/status textual;
+- rota preparada, estrutura inicial e vazio;
+- bridge não testada, testando, respondendo ou em falha.
 
-### Buttons
+Estados planejados — erro de rede, pedido de pareamento, aprovação, pausa real, retomada, cancelamento e conclusão persistida — devem seguir a mesma regra: texto explicativo, ação recuperável quando aplicável e não dependência exclusiva de cor.
 
-Controles têm raio de 8px, borda fina e altura entre 42–48px quando são ações primárias da tela. Verde preenchido é reservado à consequência principal. Botões secundários usam superfície forte e borda neutra; hover pode elevar o contraste da borda ou aplicar verde no texto.
+## Acessibilidade e comportamento
 
-### Dropzone
+- Preservar `focus-visible` em links e botões.
+- Manter `aria-label` quando um controle for somente ícone e `aria-label`/landmark em navegação.
+- Usar sentence case em português e verbos que descrevam a consequência da ação.
+- Não reduzir o status a um ponto colorido; exibir o rótulo online/offline, progresso ou falha.
+- Manter alvos de interação confortáveis em desktop e mobile.
+- Para novos fluxos de confiança, mostrar origem, destino, capacidade solicitada e resultado antes de pedir confirmação.
 
-A área de envio usa borda tracejada verde escura, fundo quase preto e ícone de upload em verde. O estado de arrastar reforça borda, fundo e halo ao mesmo tempo. As quatro ações rápidas abaixo ficam em controles iguais, com ícones semânticos e acentos individuais discretos.
+## Referências visuais e ativos
 
-### Transfer and activity
+- A UI atual está em `src/`, com estilos em [`src/styles/index.css`](src/styles/index.css).
+- [`10-pulse-resumo.html`](10-pulse-resumo.html) é um mockup HTML standalone anterior. Pode servir como histórico de exploração, mas sua paleta clara e seu comportamento não definem o app atual.
+- [`assets/media-live-performance.png`](assets/media-live-performance.png) é um asset visual disponível no repositório e não está referenciado pelo frontend atual.
+- `src-tauri/icons/` contém os ícones do shell Tauri; o bundle está desativado hoje em `tauri.conf.json`.
 
-Transferências apresentam tipo de arquivo, nome, metadados, barra de progresso e pausa no mesmo alinhamento. Atividade é uma lista de linhas com ícone circular, título, origem/tamanho e horário. Verde comunica envio/conclusão; azul comunica recebimento.
+## Regras de evolução
 
-### Media and device status
-
-Mídia usa uma capa real, controles circulares simples, barra de progresso e volume. Status do dispositivo é uma lista compacta de bateria, rede, armazenamento e confiança. Ações rápidas são linhas clicáveis com ícone, texto e seta, sem transformar cada ação em um card isolado.
-
-### Responsive and accessibility
-
-Todos os controles conservam foco visível e alvos de toque confortáveis. A responsividade reorganiza contexto, não remove estado essencial. Rede offline sempre aparece como texto e como mudança de sinal; transferência pausada, erro, carregamento, vazio e aprovação permanecem operáveis.
-
-## Do's and Don'ts
-
-### Do
-
-- Use verde apenas quando houver uma ação ou estado positivo para explicar.
-- Mantenha bordas de 1px, raios discretos e separadores horizontais.
-- Preserve a hierarquia rail → cabeçalho do dispositivo → abas → workspace.
-- Use conteúdo demonstrativo honesto e mantenha a rede local como contexto central.
-- Teste desktop e mobile, especialmente em torno de 390px.
-
-### Don't
-
-- Não reintroduza a paleta clara de papel quente do protótipo anterior.
-- Não use gradientes, glassmorphism, sombras em todos os cards ou brilho neon como decoração.
-- Não dependa apenas de cor para dizer online, offline, recebido ou pendente.
-- Não transforme todos os itens em pílulas ou cartões iguais.
-- Não use emoji ou glifos Unicode como substitutos para ícones em novos componentes; prefira SVGs de traço consistente.
+- Preferir tokens existentes a novas cores ou raios.
+- Adicionar um componente quando houver comportamento reutilizável; não transformar cada linha em um card independente.
+- Documentar uma decisão aqui quando ela alterar layout, hierarquia, estado, copy ou iconografia.
+- Se uma tela ainda for placeholder, mantê-la honesta e não simular sucesso de uma operação que não existe.

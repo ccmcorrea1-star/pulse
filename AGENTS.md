@@ -1,42 +1,64 @@
-# Repository Guidelines
+# Guia para agentes
 
-## Project Structure & Module Organization
+Instruções operacionais para trabalhar neste repositório. Não replique aqui decisões de produto, UI ou arquitetura: consulte os documentos fonte.
 
-This repository is a small, self-contained Pulse UI prototype. The root contains:
+## Fontes de decisão
 
-- `10-pulse-resumo.html`: the complete application, including markup, CSS, and browser-side JavaScript.
-- `AGENTS.md`: contributor and automation guidance.
+| Assunto | Fonte principal |
+| --- | --- |
+| Produto, escopo e roadmap funcional | [`PRODUCT.md`](PRODUCT.md) |
+| UI/UX, layout, tokens, estados e iconografia | [`DESIGN.md`](DESIGN.md) |
+| Arquitetura, bridge Tauri/Rust e módulos futuros | [`SYSTEM-DESIGN.md`](SYSTEM-DESIGN.md) |
+| Entrada rápida e comandos principais | [`README.md`](README.md) |
 
-There are currently no separate source, test, asset, or build directories. Keep new UI work in the existing HTML file unless the project grows enough to justify splitting modules.
+Se a implementação e a documentação divergirem, verifique o código primeiro, corrija a documentação na mesma tarefa quando esse for o objetivo e não invente comportamento para preencher lacunas.
 
-## Build, Test, and Development Commands
+## Estado atual que importa para agentes
 
-There is no package manager or build pipeline. Use a local static server for development:
+- O app atual é Vue 3 + TypeScript + Vite dentro de Tauri 2; o ponto de entrada é `src/main.ts` e o shell Rust está em `src-tauri/src/`.
+- Dispositivos e transferências ainda são mocks efêmeros de Pinia. Não há discovery, pairing, rede, persistência, Clipboard, mídia ou transferências reais.
+- O único command Rust é `greet`, exposto para testar a bridge em `SettingsView`.
+- As rotas de dispositivo já reservam `Visão geral`, `Arquivos`, `Clipboard`, `Mídia` e `Controle`, mas a maior parte delas é placeholder.
+- `10-pulse-resumo.html` é um protótipo legado; não é o ponto de entrada do aplicativo atual.
+
+## Comandos
 
 ```bash
-python3 -m http.server 4173 --directory .
+npm install
+npm run dev
+npm run typecheck
+npm run build
+npm run tauri:dev
+npm run tauri:build
+cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
-Open `http://127.0.0.1:4173/10-pulse-resumo.html` in a browser. For a JavaScript syntax check without creating temporary files:
+`npm run dev` serve a prévia web na porta `1420`. `npm run tauri:dev` executa o shell desktop e valida a bridge com Rust. `tauri:build` existe no script, mas o bundle está desativado em `src-tauri/tauri.conf.json`.
 
-```bash
-sed -n '/<script>/,/<\/script>/p' 10-pulse-resumo.html | sed '1d;$d' | node --check
-```
+Após mudanças de UI, confira Início, Transferências, Histórico, Configurações e as cinco abas de dispositivo em desktop e em torno de `680px`/`390px`.
 
-After UI changes, manually check the summary, devices, Clipboard, and History views at desktop and mobile widths (especially around 390px).
+## Convenções de implementação
 
-## Coding Style & Naming Conventions
+- Use dois espaços em Vue, TypeScript, CSS e Markdown quando houver indentação.
+- Use `<script setup lang="ts">`, aliases `@/*` e componentes pequenos no frontend.
+- Prefira classes/token existentes de Tailwind e variáveis de `src/styles/index.css`; classes CSS próprias devem seguir `pulse-` + kebab-case.
+- Mantenha copy em português brasileiro, em sentence case, com estado textual e nomes de ação claros.
+- Preserve `focus-visible`, landmarks e nomes acessíveis.
+- Use Lucide para ícones de interface e Simple Icons somente para marcas/plataformas.
+- Mantenha Rust organizado por domínio em `src-tauri/src/` e não crie capabilities Tauri amplas sem necessidade documentada.
 
-Use two-space indentation and keep the document formatted consistently with the existing file. Use semantic HTML and accessible names for controls. Existing classes use the `pulse-` prefix and kebab-case (for example, `.pulse-device-detail`); follow that convention. Keep user-facing copy in Brazilian Portuguese, concise, and action-oriented. Prefer CSS custom properties for shared colors and preserve visible `:focus-visible` states. Keep interaction logic in the existing script and avoid adding dependencies without a clear need.
+## Regras de documentação e segurança
 
-## Testing Guidelines
+- Use as quatro fontes principais acima e evite duplicar a mesma decisão em mais de um documento.
+- Ao documentar uma feature, marque explicitamente se está **implementada**, **estruturada**, **planejada** ou é **futura**.
+- Nunca apresente mock, placeholder ou rota como integração funcional.
+- Não adicione credenciais, dados privados de rede ou lógica de transporte de produção ao protótipo.
+- Não altere `10-pulse-resumo.html` ou assets legados para implementar uma feature do app atual sem uma solicitação específica.
+- `.agents/`, `.codex/` e `.impeccable/` são arquivos auxiliares/gerados de tooling; não são fontes de decisão do Pulse.
 
-No automated test framework or coverage target is configured. Validate JavaScript syntax with the command above, then perform a manual smoke test of navigation, approval/rejection actions, transfer pause/resume, file selection, Clipboard actions, and responsive layout.
+## Validação antes de entregar
 
-## Commit & Pull Request Guidelines
-
-No Git history is available in the current workspace, so no existing commit convention can be inferred. Use short imperative messages, preferably Conventional Commit style (for example, `fix: stack summary columns on mobile`). Pull requests should explain the user-visible change, list manual checks, and include before/after screenshots for visual changes.
-
-## Security & Configuration Notes
-
-This is a front-end prototype with mock data and no backend. Do not add real credentials, private network data, or production transfer logic to the HTML. Treat uploaded file previews and generated object URLs as local test data only.
+1. Confira `git diff` e confirme que a mudança ficou no escopo pedido.
+2. Execute `npm run typecheck`, `npm run build` e `cargo check --manifest-path src-tauri/Cargo.toml` quando o ambiente permitir.
+3. Para mudanças de UI, faça smoke test das rotas e da responsividade.
+4. Para mudanças de documentação, releia todos os Markdown raiz e procure nomes, status e comandos contraditórios.
