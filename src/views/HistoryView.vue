@@ -14,7 +14,7 @@ import Badge from "@/components/ui/badge/Badge.vue";
     <div class="mt-7 flex min-h-56 flex-col items-center justify-center rounded-panel border border-dashed border-border bg-surface px-6 text-center">
       <span class="grid size-11 place-items-center rounded-control border border-border bg-background text-muted"><History :size="19" /></span>
       <p class="mt-4 text-sm font-medium text-foreground">O histórico aparecerá aqui</p>
-      <p class="mt-2 max-w-sm text-xs leading-5 text-muted">Por enquanto, não há armazenamento local nem eventos de rede conectados ao app.</p>
+      <p class="mt-2 max-w-sm text-xs leading-5 text-muted">Por enquanto, não há eventos de produto conectados ao app.</p>
     </div>
   </section>
 </template>

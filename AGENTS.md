@@ -10,14 +10,17 @@ Instruções operacionais para trabalhar neste repositório. Não replique aqui 
 | UI/UX, layout, tokens, estados e iconografia | [`DESIGN.md`](DESIGN.md) |
 | Arquitetura, bridge Tauri/Rust e módulos futuros | [`SYSTEM-DESIGN.md`](SYSTEM-DESIGN.md) |
 | Entrada rápida e comandos principais | [`README.md`](README.md) |
+| Roadmap, tasks e evidências de execução | [`TODO.md`](TODO.md) e [`docs/tasks/`](docs/tasks/) |
 
 Se a implementação e a documentação divergirem, verifique o código primeiro, corrija a documentação na mesma tarefa quando esse for o objetivo e não invente comportamento para preencher lacunas.
 
 ## Estado atual que importa para agentes
 
 - O app atual é Vue 3 + TypeScript + Vite dentro de Tauri 2; o ponto de entrada é `src/main.ts` e o shell Rust está em `src-tauri/src/`.
-- Dispositivos e transferências ainda são mocks efêmeros de Pinia. Não há discovery, pairing, rede, persistência, Clipboard, mídia ou transferências reais.
-- O único command Rust é `greet`, exposto para testar a bridge em `SettingsView`.
+- Os contratos canônicos de domínio estão estruturados em `src/types/index.ts` e nos modelos puros de `src-tauri/src/domain/`; a bridge tipada de infraestrutura está conectada ao runtime, mas os contratos de domínio ainda não hidratam stores nem serviços de produto.
+- Dispositivos e transferências ainda são mocks efêmeros de Pinia. Há somente a fundação de storage SQLite local atrás do runtime; não há discovery, pairing, rede, hidratação da UI, Clipboard, mídia ou transferências reais.
+- A TASK 02 decidiu mDNS/DNS-SD para discovery local e QUIC v1 via `quinn` para transporte direto, mas essa decisão ainda não está implementada: não há dependências de rede, sockets ou comandos de produção no repositório.
+- Os commands Rust incluem `greet` (smoke test) e `bridge_get_info`/`bridge_get_snapshot` (infraestrutura tipada); o evento `pulse.bridge.status` é emitido no startup. Nenhum command de produto existe.
 - As rotas de dispositivo já reservam `Visão geral`, `Arquivos`, `Clipboard`, `Mídia` e `Controle`, mas a maior parte delas é placeholder.
 - `10-pulse-resumo.html` é um protótipo legado; não é o ponto de entrada do aplicativo atual.
 
@@ -30,10 +33,18 @@ npm run typecheck
 npm run build
 npm run tauri:dev
 npm run tauri:build
+npm test
+npm run test:rust
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
 `npm run dev` serve a prévia web na porta `1420`. `npm run tauri:dev` executa o shell desktop e valida a bridge com Rust. `tauri:build` existe no script, mas o bundle está desativado em `src-tauri/tauri.conf.json`.
+
+## Fluxo de tasks
+
+- Use `TODO.md` como índice e leia o plano correspondente em `docs/tasks/` antes de implementar uma task.
+- Registre no plano as evidências, decisões, limites de escopo e validações; o agente principal consolida a investigação, integra as alterações e faz a revisão final.
+- Mantenha separadas as decisões documentais, os contratos estruturados e as integrações realmente implementadas; nunca trate uma rota, mock, POC ou decisão arquitetural como funcionalidade pronta.
 
 Após mudanças de UI, confira Início, Transferências, Histórico, Configurações e as cinco abas de dispositivo em desktop e em torno de `680px`/`390px`.
 
@@ -59,6 +70,6 @@ Após mudanças de UI, confira Início, Transferências, Histórico, Configuraç
 ## Validação antes de entregar
 
 1. Confira `git diff` e confirme que a mudança ficou no escopo pedido.
-2. Execute `npm run typecheck`, `npm run build` e `cargo check --manifest-path src-tauri/Cargo.toml` quando o ambiente permitir.
+2. Execute `npm run typecheck`, `npm test`, `npm run test:rust`, `npm run build` e `cargo check --manifest-path src-tauri/Cargo.toml` quando o ambiente permitir.
 3. Para mudanças de UI, faça smoke test das rotas e da responsividade.
 4. Para mudanças de documentação, releia todos os Markdown raiz e procure nomes, status e comandos contraditórios.

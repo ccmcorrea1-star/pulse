@@ -548,3 +548,5 @@ export type LegacyDevice = MockDevice;
 export type LegacyTransfer = MockTransfer;
 
 export type BridgeState = "idle" | "loading" | "success" | "error";
+
+export * from "./bridge";

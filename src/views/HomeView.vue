@@ -21,7 +21,7 @@ const transfersStore = useTransfersStore();
           <Badge variant="muted">mock local · sem networking</Badge>
         </div>
         <h1 class="mt-5 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">Um shell calmo para acompanhar seus dispositivos.</h1>
-        <p class="mt-4 max-w-2xl text-base leading-7 text-muted">O Pulse começa com uma base navegável, tokens compartilhados e uma bridge mínima entre Vue e Rust. As capacidades de produto entram depois, em camadas separadas.</p>
+        <p class="mt-4 max-w-2xl text-base leading-7 text-muted">O Pulse começa com uma base navegável, tokens compartilhados e uma bridge tipada de infraestrutura entre Vue e Rust. As capacidades de produto entram depois, em camadas separadas.</p>
       </div>
       <div class="mt-6 flex flex-wrap items-center gap-3">
         <RouterLink to="/settings" class="inline-flex h-10 items-center gap-2 rounded-control bg-accent px-4 text-sm font-medium text-background transition-colors hover:bg-accent-strong">

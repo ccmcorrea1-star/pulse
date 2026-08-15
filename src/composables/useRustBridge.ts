@@ -1,21 +1,15 @@
-import { invoke } from "@tauri-apps/api/core";
+import { BridgeClient } from "@/bridge/client";
+
+const bridgeClient = new BridgeClient();
 
 export function useRustBridge() {
-  const isTauri = () => Boolean(window.__TAURI_INTERNALS__);
-
-  async function greet(name: string) {
-    if (!isTauri()) {
-      return {
-        message: `Prévia web ativa para ${name}.`,
-        isDemo: true,
-      };
-    }
-
-    return {
-      message: await invoke<string>("greet", { name }),
-      isDemo: false,
-    };
-  }
-
-  return { greet, isTauri };
+  return {
+    greet: (name: string) => bridgeClient.greet(name),
+    getInfo: () => bridgeClient.getInfo(),
+    getSnapshot: () => bridgeClient.getSnapshot(),
+    listenStatus: bridgeClient.listenStatus.bind(bridgeClient),
+    listenDomainEvents: bridgeClient.listenDomainEvents.bind(bridgeClient),
+    dispose: () => bridgeClient.dispose(),
+    isTauri: () => bridgeClient.isTauri(),
+  };
 }

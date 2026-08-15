@@ -44,7 +44,9 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 - Stores Pinia efêmeras para aplicação, dispositivos e transferências.
 - Dois registros mockados de transferência, incluindo progresso e fila visual na página inicial.
 - Tela de configuração capaz de testar a comunicação Vue ↔ Rust por meio do command `greet`.
+- Infraestrutura bridge tipada para consultar info/snapshot público e observar o status do runtime; isso ainda não conecta estado de produto aos stores.
 - Interface dark, compacta e responsiva em desktop, com adaptação básica para larguras menores.
+- Fundação de persistência SQLite local no Rust, com schema versionado, migrations forward-only e proteção contra corrupção/incompatibilidade; os stores Vue ainda não são hidratados por ela.
 
 ### Estruturado/preparado
 
@@ -60,7 +62,7 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 - Transferência real de arquivos ou pastas, incluindo seleção, fila, pausa, retomada e cancelamento.
 - Clipboard entre dispositivos, envio de texto/links e histórico persistente.
 - Notificações, mídia, controle remoto e comandos.
-- Persistência local, sincronização, eventos Tauri e qualquer protocolo de rede.
+- Hidratação dos stores e persistência funcional de dispositivos, transferências, identidade e histórico; sincronização de eventos de produto e qualquer protocolo de rede.
 
 ## Funcionalidades e roadmap
 
@@ -74,7 +76,7 @@ O roadmap abaixo descreve direção funcional. Ele não representa código já d
 | Texto e links | Não há fluxo funcional | Tratar como conteúdo leve dentro do envio local |
 | Clipboard | Aba reservada; sem leitura ou escrita remota | Compartilhamento controlado de texto, links e tipos suportados |
 | Transferências | Preview mockado no Início e rota vazia | Serviço de transferência, estados reais e cancelamento/retomada |
-| Histórico | Rota e estado vazio | Registro local de eventos, origem, destino e resultado |
+| Histórico | Rota e estado vazio; schema local preparado | Registro local de eventos, origem, destino e resultado via bridge |
 | Notificações | Não existe | Avisos locais para pedidos, conclusão e falha |
 | Mídia | Rota com placeholder | Leitura e controle de mídia sob capability explícita |
 | Controle e comandos | Rotas reservadas | Ações remotas limitadas, auditáveis e autorizadas |

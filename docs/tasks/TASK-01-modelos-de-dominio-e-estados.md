@@ -54,7 +54,7 @@ Referências arquiteturais: `SYSTEM-DESIGN.md:78-93,136-148`. Referências ofici
 
 - O contrato precisa impedir que presença represente confiança, suporte represente autorização ou notificação represente sucesso.
 - Cenários negativos prioritários incluem peer revogado que reaparece, pairing expirado que vira trust, capability usada na direção errada, transferência concluída sem integridade, progresso inválido, retry duplicado e comando fora da lista permitida.
-- Não existe runner, script de teste, fixture canônica ou harness Rust/Vue no estado atual (`package.json:6-34`, `src-tauri/Cargo.toml:15-16`). A TASK 06 deve criar essa infraestrutura; TASK 01 deve fechar os invariantes que ela deverá testar.
+- Na execução da TASK 01, não existia runner, script de teste, fixture canônica ou harness Rust/Vue (`package.json:6-34`, `src-tauri/Cargo.toml:15-16`). A TASK 06 criou essa infraestrutura e exercita os invariantes definidos aqui.
 
 ## Decisões
 

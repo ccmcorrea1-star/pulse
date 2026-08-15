@@ -29,7 +29,7 @@ const bridgeLabel = computed(() => {
           <span class="grid size-9 place-items-center rounded-control border border-border bg-background text-accent"><Settings2 :size="17" /></span>
           <div>
             <h2 class="text-sm font-semibold text-foreground">Comunicação Vue ↔ Rust</h2>
-            <p class="mt-1 text-xs leading-5 text-muted">Command mínimo de teste registrado no Tauri, sem permissões extras.</p>
+            <p class="mt-1 text-xs leading-5 text-muted">O command <code>greet</code> continua como smoke test; a bridge tipada de infraestrutura não exige permissões extras.</p>
           </div>
         </div>
         <div class="mt-5 flex flex-wrap items-center gap-3">

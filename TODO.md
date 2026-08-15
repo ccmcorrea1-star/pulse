@@ -1,6 +1,6 @@
 # Pulse — TODO
 
-Este é o índice principal do desenvolvimento futuro do Pulse. A fundação Tauri 2 + Vue 3 + TypeScript + Vite, o shell navegável, as rotas, os stores Pinia efêmeros, os mocks visuais e o command Rust `greet` são considerados concluídos. Mocks e placeholders continuam sendo apenas suporte de desenvolvimento até que uma task os substitua por estado ou integração real.
+Este é o índice principal do desenvolvimento futuro do Pulse. A fundação Tauri 2 + Vue 3 + TypeScript + Vite, o shell navegável, as rotas, os stores Pinia efêmeros, os mocks visuais, o command Rust `greet`, a bridge tipada de infraestrutura, o lifecycle estrutural do runtime e a fundação de storage SQLite local são considerados concluídos. Mocks e placeholders continuam sendo apenas suporte de desenvolvimento até que uma task os substitua por estado ou integração real.
 
 Quando uma task for iniciada, criar seu plano em `docs/tasks/TASK-XX-nome.md`. O arquivo detalhado deve ser criado somente nesse momento; `docs/tasks/` é mantido como diretório de entrada para esses planos.
 
@@ -52,21 +52,21 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
   - Critérios de conclusão: Existe uma política de segurança verificável, com matriz de capabilities, decisões de aprovação/negação/revogação e comportamento para perda de confiança.
   - Validação: Revisão de segurança cobrindo spoofing, replay, peer não pareado, payload malformado, vazamento de caminho e execução não autorizada.
 
-- [ ] TASK 04 — Decidir persistência, migrações e retenção local
+- [x] TASK 04 — Decidir persistência, migrações e retenção local
   - Objetivo: Escolher como o Pulse armazenará estado confiável e histórico sem depender de cloud.
   - Escopo: Backend de armazenamento, esquema e migrações, dados sensíveis, retenção de Clipboard/histórico, corrupção, reset e recuperação.
   - Dependências: TASK 01 e TASK 03.
   - Critérios de conclusão: A estratégia escolhida define o que persiste, por quanto tempo, como evolui e o que nunca deve ser armazenado.
   - Validação: Revisão de cenários de primeiro uso, upgrade, downgrade não suportado, falha de escrita e remoção de dados.
 
-- [ ] TASK 05 — Definir o contrato da bridge Rust ↔ Vue
+- [x] TASK 05 — Definir o contrato da bridge Rust ↔ Vue
   - Objetivo: Padronizar como a UI solicita intenções e recebe estado e eventos de domínio.
   - Escopo: Comandos, eventos, payloads, erros, versionamento, validação de entrada, ciclo de vida dos listeners e comportamento da prévia web.
   - Dependências: TASK 01, TASK 03 e TASK 04.
   - Critérios de conclusão: O contrato separa UI de transporte, não expõe detalhes internos de sockets e define respostas para sucesso, erro, loading, stale e offline.
   - Validação: Revisar os contratos com cenários de erro e garantir que o command `greet` continue apenas como smoke test da fundação.
 
-- [ ] TASK 06 — Preparar a base de testes e fixtures
+- [x] TASK 06 — Preparar a base de testes e fixtures
   - Objetivo: Criar a capacidade de validar domínios, bridge, UI e integrações sem depender de dispositivos reais em toda execução.
   - Escopo: Ferramentas de teste Rust/TypeScript/Vue, fixtures de domínio, relógio controlável, peers falsos, dados de erro e comandos de validação.
   - Dependências: TASK 01 e TASK 05.
@@ -75,26 +75,26 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Fase 2 — Base de domínio, persistência e bridge
 
-- [ ] TASK 07 — Estruturar o runtime de serviços Rust
+- [x] TASK 07 — Estruturar o runtime de serviços Rust
   - Objetivo: Criar o ciclo de vida dos serviços de domínio no processo Tauri.
   - Escopo: Estado compartilhado, inicialização ordenada, encerramento, propagação de erros e fronteiras entre domínio, efeitos e bridge.
   - Dependências: TASK 03, TASK 04 e TASK 05.
-  - Critérios de conclusão: O runtime suporta serviços inativos ou ainda não configurados sem fingir que há networking funcional.
-  - Validação: Iniciar e encerrar o app em modo web e Tauri; cobrir inicialização parcial e erro de serviço.
+  - Critérios de conclusão: O runtime compartilhado e testável suporta serviços inativos ou ainda não configurados sem fingir que há networking funcional; inicialização e encerramento têm ordem e propagação de erros definidas.
+  - Validação: Testes offline cobrem inicialização parcial, serviço inativo, falha de serviço, cleanup reverso, encerramento e transições inválidas; `greet` e o build da bridge continuam válidos.
 
-- [ ] TASK 08 — Implementar persistência local e migrações
+- [x] TASK 08 — Implementar persistência local e migrações
   - Objetivo: Tirar o estado confiável da memória sem criar dependência de cloud.
   - Escopo: Inicialização do armazenamento, migrações, leitura/escrita transacional, recuperação de falha e APIs para os modelos definidos.
   - Dependências: TASK 04, TASK 06 e TASK 07.
-  - Critérios de conclusão: O armazenamento abre em instalação nova, migra uma versão anterior, preserva dados válidos e falha de modo recuperável.
-  - Validação: Testes de migração, reinício do app, interrupção de escrita e limpeza explícita dos dados locais.
+  - Critérios de conclusão: O storage Rust abre em instalação nova, aplica migrations forward-only com checksum, preserva metadados válidos e falha de modo recuperável sem expor SQL ou conteúdo.
+  - Validação: Testes de migration/rollback, reinício, corrupção, versão futura, integridade, runtime e limpeza explícita dos dados locais.
 
-- [ ] TASK 09 — Implementar comandos e eventos tipados da bridge
+- [x] TASK 09 — Implementar comandos e eventos tipados da bridge
   - Objetivo: Conectar o contrato da TASK 05 ao runtime Rust sem acoplar a UI às implementações internas.
   - Escopo: Registro de comandos, emissão de eventos, desserialização, erros de domínio, validação de origem e lifecycle dos listeners.
   - Dependências: TASK 05, TASK 06 e TASK 07.
-  - Critérios de conclusão: A bridge transporta estados e eventos de teste tipados, trata erro e desconexão, e mantém o fallback web explicitamente demonstrativo.
-  - Validação: Testes de contrato Rust/Vue e smoke test da aplicação Tauri.
+  - Critérios de conclusão: A bridge transporta estados e eventos de infraestrutura tipados, trata erro e desconexão, e mantém o fallback web explicitamente demonstrativo; não há ainda estado de produto.
+  - Validação: Testes de contrato Rust/Vue, compilação do shell e smoke test da aplicação Tauri.
 
 - [ ] TASK 10 — Integrar modelos reais ao estado do Vue
   - Objetivo: Substituir o acesso direto a dados mockados por stores e adaptadores baseados nos contratos da bridge.
@@ -408,4 +408,4 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Próxima task recomendada
 
-**TASK 04 — Decidir persistência, migrações e retenção local.** Com o discovery, o transporte e a política de segurança definidos, a próxima etapa deve fechar armazenamento confiável, dados sensíveis, retenção e recuperação antes de conectar estado persistente ou serviços de produto.
+**TASK 10 — Integrar modelos reais ao estado do Vue.** A bridge de infraestrutura agora está tipada e redigida; a próxima etapa deve hidratar stores com snapshot/eventos, mantendo mocks rotulados e estados de loading, erro, vazio, stale e offline honestos.
