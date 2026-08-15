@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --pulse-background: #080b0e;
+  --pulse-surface: #12181d;
+  --pulse-surface-hover: #171d22;
+  --pulse-surface-raised: #1c2227;
+  --pulse-border: #222a31;
+  --pulse-foreground: #f2f5f5;
+  --pulse-muted: #9aa4ad;
+  --pulse-muted-strong: #c1c8cc;
+  --pulse-accent: #39d463;
+  --pulse-accent-strong: #6be38a;
+  --pulse-success: #39d463;
+  --pulse-warning: #e4b74e;
+  --pulse-destructive: #ed7567;
+  --pulse-info: #39b9ed;
+  --pulse-radius-control: 8px;
+  --pulse-radius-panel: 10px;
+  --pulse-radius-shell: 16px;
+  --pulse-spacing-control: 10px;
+  --pulse-spacing-section: 16px;
+  --pulse-spacing-layout: 20px;
+  --pulse-spacing-shell: 29px;
+  --pulse-font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pulse-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@theme inline {
+  --color-background: var(--pulse-background);
+  --color-surface: var(--pulse-surface);
+  --color-surface-hover: var(--pulse-surface-hover);
+  --color-surface-raised: var(--pulse-surface-raised);
+  --color-border: var(--pulse-border);
+  --color-foreground: var(--pulse-foreground);
+  --color-muted: var(--pulse-muted);
+  --color-muted-strong: var(--pulse-muted-strong);
+  --color-accent: var(--pulse-accent);
+  --color-accent-strong: var(--pulse-accent-strong);
+  --color-success: var(--pulse-success);
+  --color-warning: var(--pulse-warning);
+  --color-destructive: var(--pulse-destructive);
+  --color-info: var(--pulse-info);
+  --color-ring: var(--pulse-accent-strong);
+  --radius-control: var(--pulse-radius-control);
+  --radius-panel: var(--pulse-radius-panel);
+  --radius-shell: var(--pulse-radius-shell);
+  --spacing-pulse-control: var(--pulse-spacing-control);
+  --spacing-pulse-section: var(--pulse-spacing-section);
+  --spacing-pulse-layout: var(--pulse-spacing-layout);
+  --spacing-pulse-shell: var(--pulse-spacing-shell);
+}
+
+* {
+  border-color: var(--pulse-border);
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--pulse-background);
+  color: var(--pulse-foreground);
+  font-family: var(--pulse-font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--pulse-accent-strong);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--pulse-accent) 28%, transparent);
+  color: var(--pulse-foreground);
+}
+
+.pulse-scrollbar {
+  scrollbar-color: var(--pulse-border) transparent;
+  scrollbar-width: thin;
+}
+
+.pulse-scrollbar::-webkit-scrollbar {
+  width: 9px;
+}
+
+.pulse-scrollbar::-webkit-scrollbar-thumb {
+  border: 3px solid var(--pulse-background);
+  border-radius: 999px;
+  background: var(--pulse-border);
+}
+
+.pulse-app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--pulse-background);
+}
+
+.pulse-sidebar {
+  width: 252px;
+  flex: 0 0 252px;
+}
+
+.pulse-content-scroll {
+  min-width: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+@media (max-width: 920px) {
+  .pulse-sidebar {
+    width: 218px;
+    flex-basis: 218px;
+  }
+}
+
+@media (max-width: 680px) {
+  .pulse-app-shell {
+    display: block;
+  }
+
+  .pulse-sidebar {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .pulse-sidebar-device-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  .pulse-sidebar-device-list > * {
+    min-width: 170px;
+  }
+}
