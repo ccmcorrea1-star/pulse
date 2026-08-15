@@ -192,4 +192,4 @@ O POC deve ser descartável, ficar fora do repositório e usar certificados/iden
 
 ## Dependências e limites
 
-Esta decisão desbloqueia as TASKS 11 e 12, mas não autoriza implementação de produção isoladamente. Permanecem fora desta task: threat model completo e armazenamento de chaves (TASK 03), persistência (TASK 04/08), contrato da bridge (TASK 05/09), runtime de serviços (TASK 07), pairing real (TASK 18), canal seguro de peers confiáveis (TASK 20), envelope/capabilities de mensagens (TASK 21), validação de abuso (TASK 22) e recursos de arquivos/Clipboard/mídia/comandos.
+Esta decisão desbloqueia as TASKS 11 e 12, mas não autoriza implementação de produção isoladamente. Permanecem fora desta task: threat model completo e armazenamento de chaves (TASK 03), persistência (TASK 04/08), contrato da bridge (TASK 05/09), runtime de serviços (TASK 07), pairing real (TASK 16), trust e revogação (TASK 17), política de capabilities (TASK 18), canal seguro de peers confiáveis (TASK 20), envelope/capabilities de mensagens (TASK 21), validação de abuso (TASK 22) e recursos de arquivos/Clipboard/mídia/comandos.

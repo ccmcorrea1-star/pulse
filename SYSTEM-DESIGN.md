@@ -158,7 +158,7 @@ Capabilities continuam sendo uma proposta de autorização operacional por dispo
 | `notifications.receive` | Receber avisos locais |
 | `commands.execute` | Executar comandos previamente autorizados |
 
-Cada capability deve ter, no mínimo, identidade do dispositivo, estado (`available`, `requested`, `granted`, `denied` ou `revoked`), direção quando aplicável e registro da decisão. O conjunto final, o formato persistido e a UX de aprovação ainda precisam ser definidos antes da implementação.
+Cada capability deve ter, no mínimo, identidade do dispositivo, estado (`available`, `requested`, `granted`, `denied` ou `revoked`), direção quando aplicável e registro da decisão. A política de segurança, identidade, pairing, revogação, defaults e matriz de capabilities está definida em [`docs/tasks/TASK-03-threat-model-identidade-trust-capabilities.md`](docs/tasks/TASK-03-threat-model-identidade-trust-capabilities.md); persistência e UX de aprovação continuam pertencendo às tasks próprias.
 
 ## Direção por domínio
 
@@ -184,7 +184,7 @@ Notificações devem ser efeitos locais derivados de eventos de domínio. Histó
 
 ## Segurança e limites de produção
 
-A direção é local e sem cloud, mas local não significa automaticamente confiável. Antes de qualquer fluxo real, a arquitetura precisa definir autenticação de peers, pareamento seguro, transporte criptografado, autorização por capability, validação de payloads, limites de arquivos, retenção de Clipboard, tratamento de caminhos e revogação. Não declarar “criptografia ativa”, “dispositivo confiável” ou “transferência concluída” enquanto essas camadas não existirem.
+A direção é local e sem cloud, mas local não significa automaticamente confiável. A política de autenticação de peers, pareamento seguro, autorização por capability, armazenamento de identidade, anti-replay, limites de comandos e revogação está definida na TASK 03; a implementação de transporte criptografado, validação de payloads, limites de arquivos, retenção de Clipboard e tratamento de caminhos continua futura. Não declarar “criptografia ativa”, “dispositivo confiável” ou “transferência concluída” enquanto essas camadas não existirem.
 
 Não adicionar credenciais, dados privados de rede ou lógica de transferência de produção ao mock atual. Capabilities Tauri extras só devem ser adicionadas junto do recurso que as exige e com o menor escopo possível.
 

@@ -45,7 +45,7 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
   - Critérios de conclusão: Há uma decisão registrada, alternativas rejeitadas e limites claros para discovery de candidato versus dispositivo confiável.
   - Validação: Revisão arquitetural de fluxo online/offline e teste de viabilidade em duas instâncias Linux sem introduzir código de produção.
 
-- [ ] TASK 03 — Definir threat model, identidade, trust e capabilities
+- [x] TASK 03 — Definir threat model, identidade, trust e capabilities
   - Objetivo: Estabelecer as regras de segurança que antecedem qualquer comunicação real.
   - Escopo: Ameaças locais, identidade de peer, autenticação de pairing, criptografia, armazenamento de segredos, revogação, estados de capability e limites para comandos remotos.
   - Dependências: TASK 01 e TASK 02.
@@ -408,4 +408,4 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Próxima task recomendada
 
-**TASK 03 — Definir threat model, identidade, trust e capabilities.** Com o discovery, o transporte e o ciclo de conexão local decididos, a próxima etapa deve fechar autenticação, pairing, revogação e limites de autorização antes de qualquer comunicação de produção.
+**TASK 04 — Decidir persistência, migrações e retenção local.** Com o discovery, o transporte e a política de segurança definidos, a próxima etapa deve fechar armazenamento confiável, dados sensíveis, retenção e recuperação antes de conectar estado persistente ou serviços de produto.
