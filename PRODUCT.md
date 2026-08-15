@@ -50,7 +50,7 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 
 - O router já reserva os destinos das áreas funcionais por dispositivo.
 - `src-tauri/src/` contém diretórios preparados para `discovery`, `pairing`, `device`, `protocol`, `transfer`, `clipboard` e `media`, ainda sem implementação de domínio.
-- O modelo TypeScript já nomeia dispositivos, estados de transferência e estado da bridge, mas esses tipos ainda sustentam apenas dados locais.
+- O contrato canônico de domínio já está estruturado em TypeScript e em modelos puros Rust; os stores e a UI ainda usam tipos explícitos de mock até a integração da bridge.
 - A configuração de capabilities Tauri existe e hoje concede somente `core:default`.
 
 ### Ainda não implementado

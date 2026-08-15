@@ -31,14 +31,14 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Fase 1 — Contratos e decisões fundamentais
 
-- [ ] TASK 01 — Fechar os modelos de domínio e seus estados
+- [x] TASK 01 — Fechar os modelos de domínio e seus estados
   - Objetivo: Definir a linguagem comum que será usada pelo Rust, pela bridge e pelo Vue.
   - Escopo: Dispositivo, presença, pairing, trust, capability, transferência, conteúdo leve, histórico, notificação, mídia e comando remoto; IDs, estados, transições e timestamps.
   - Dependências: Fundação Tauri/Vue concluída.
   - Critérios de conclusão: Os modelos, estados válidos e invariantes estão documentados de forma consistente entre frontend e backend, sem depender dos tipos mockados atuais.
   - Validação: Revisão cruzada com `PRODUCT.md`, `DESIGN.md` e `SYSTEM-DESIGN.md`; conferir que cada estado visível tem uma representação textual honesta.
 
-- [ ] TASK 02 — Decidir discovery, transporte e ciclo de conexão local
+- [x] TASK 02 — Decidir discovery, transporte e ciclo de conexão local
   - Objetivo: Escolher a estratégia técnica para encontrar peers e manter conexões diretas na rede local.
   - Escopo: Mecanismo de discovery, transporte, portas e escopos de rede, timeouts, reconexão, ausência de rede e compatibilidade futura entre plataformas.
   - Dependências: TASK 01.
@@ -408,4 +408,4 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Próxima task recomendada
 
-**TASK 01 — Fechar os modelos de domínio e seus estados.** Ela é o primeiro ponto de decisão que evita que discovery, pairing, transferências e as telas reais evoluam com estados incompatíveis entre Rust e Vue.
+**TASK 03 — Definir threat model, identidade, trust e capabilities.** Com o discovery, o transporte e o ciclo de conexão local decididos, a próxima etapa deve fechar autenticação, pairing, revogação e limites de autorização antes de qualquer comunicação de produção.

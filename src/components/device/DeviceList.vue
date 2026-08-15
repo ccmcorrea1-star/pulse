@@ -3,10 +3,10 @@ import { Monitor, Smartphone } from "@lucide/vue";
 import { RouterLink } from "vue-router";
 
 import { useDevicesStore } from "@/stores/devices";
-import type { Device } from "@/types";
+import type { MockDevice } from "@/types";
 
 const devicesStore = useDevicesStore();
-const iconFor = (device: Device) => (device.platform === "linux" ? Monitor : Smartphone);
+const iconFor = (device: MockDevice) => (device.platform === "linux" ? Monitor : Smartphone);
 </script>
 
 <template>

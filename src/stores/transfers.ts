@@ -1,9 +1,9 @@
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
-import type { Transfer } from "@/types";
+import type { MockTransfer } from "@/types";
 
-const mockTransfers: Transfer[] = [
+const mockTransfers: MockTransfer[] = [
   {
     id: "transfer-1",
     name: "brief-pulse.pdf",
@@ -25,7 +25,7 @@ const mockTransfers: Transfer[] = [
 ];
 
 export const useTransfersStore = defineStore("transfers", () => {
-  const transfers = ref<Transfer[]>(mockTransfers);
+  const transfers = ref<MockTransfer[]>(mockTransfers);
   const activeTransfers = computed(() => transfers.value.filter((transfer) => transfer.status !== "complete"));
 
   return { transfers, activeTransfers };

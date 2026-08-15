@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+pub mod domain;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Olá, {name}! Vue está conectado ao Rust.")

@@ -5,7 +5,7 @@ import { RouterLink, RouterView, useRoute } from "vue-router";
 
 import Badge from "@/components/ui/badge/Badge.vue";
 import { useDevicesStore } from "@/stores/devices";
-import type { Device } from "@/types";
+import type { MockDevice } from "@/types";
 
 const route = useRoute();
 const devicesStore = useDevicesStore();
@@ -17,7 +17,7 @@ const tabs = [
   { label: "Mídia", name: "device-media" },
   { label: "Controle", name: "device-control" },
 ];
-const iconFor = (currentDevice: Device) => (currentDevice.platform === "linux" ? Monitor : Smartphone);
+const iconFor = (currentDevice: MockDevice) => (currentDevice.platform === "linux" ? Monitor : Smartphone);
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 # TASK 01 — Fechar os modelos de domínio e seus estados
 
-Status: planejamento consolidado; implementação ainda não iniciada
+Status: implementação concluída; integração de estado e bridge ainda não iniciadas
 
 ## Objetivo
 
@@ -10,11 +10,11 @@ Esta task não transforma os mocks atuais em integração real e não conecta di
 
 ## Estado atual
 
-- `src/types/index.ts:1-23` contém apenas `Device`, `Transfer`, `TransferStatus` e `BridgeState`; `Device` mistura identidade e presença em `online`/`lastSeen`, enquanto `Transfer` mistura estado e dados de apresentação.
+- Antes da implementação, `src/types/index.ts:1-23` continha apenas `Device`, `Transfer`, `TransferStatus` e `BridgeState`; `Device` misturava identidade e presença em `online`/`lastSeen`, enquanto `Transfer` misturava estado e dados de apresentação. Esses registros agora estão nomeados como `MockDevice` e `MockTransfer`.
 - `src/stores/devices.ts:6-34` e `src/stores/transfers.ts:6-31` são stores efêmeros com fixtures fixas, textos relativos como `"agora"` e progresso demonstrativo.
 - `src/components/device/DeviceList.vue:19-30` e `src/components/transfer/TransferPreview.vue:19-29` inferem estado visual diretamente de `online`, `progress` e status do mock.
 - `src/views/HomeView.vue:20-24,77-92` identifica explicitamente a UI como fundação/mock; `src/views/TransfersView.vue:10-22` e `src/views/DeviceSectionView.vue:16-23` mantêm placeholders honestos.
-- `src-tauri/src/lib.rs:3-13` registra somente `greet`; não há modelos de domínio, commands de produto, estado gerenciado ou eventos Tauri.
+- `src-tauri/src/lib.rs` continua registrando somente `greet` e agora expõe o módulo puro `domain`; ainda não há commands de produto, estado gerenciado ou eventos Tauri.
 - `src/composables/useRustBridge.ts:3-20` só diferencia prévia web e chamada `greet`; `src-tauri/tauri.conf.json:13-31` mantém `withGlobalTauri: false`, CSP nula e bundle desativado.
 - `src-tauri/capabilities/default.json:3-6` concede somente `core:default`; isso é capability Tauri e não deve ser confundido com capability de autorização entre peers.
 
@@ -74,9 +74,9 @@ Referências arquiteturais: `SYSTEM-DESIGN.md:78-93,136-148`. Referências ofici
 2. Registrar tabelas de estados, transições permitidas, estados terminais e invariantes para cada entidade do escopo.
 3. Definir o contrato semântico equivalente para TypeScript e Rust, mantendo os modelos livres de dependências de Vue, Pinia, Tauri e transporte.
 4. Definir a taxonomia mínima de eventos de domínio sem fechar ainda o envelope da bridge, a entrega ou a persistência.
-5. Criar um mapa de adaptação dos tipos mockados atuais para o contrato canônico, sem alterar `src/stores/` ou a UI nesta etapa.
+5. Criar um mapa de adaptação dos tipos mockados atuais para o contrato canônico, sem alterar seus dados, estado ou comportamento visual nesta etapa.
 6. Revisar o contrato contra os cenários negativos de segurança e os estados textuais exigidos pelo design.
-7. Registrar decisões que permanecem bloqueadas pelas TASK 02–06 e só então iniciar a implementação dos tipos, se a execução da task for autorizada.
+7. Registrar decisões que permanecem bloqueadas pelas TASK 02–06 e implementar os tipos somente depois de o contrato estar consolidado.
 
 ## Fontes e limites
 
@@ -182,6 +182,8 @@ Invariantes:
 
 `LightContent` deve começar com os tipos `text` e `link`, limites explícitos e payload separado de metadados de apresentação. O envio usa a mesma sessão de transferência e autorização, sem criar um canal privilegiado.
 
+`ClipboardState` representa uma observação local ou remota de `LightContent`, identifica a origem e não implica sincronização contínua nem autorização de escrita. O conteúdo pode estar ausente quando a política local não permitir carregá-lo no estado observado.
+
 ### Histórico e notificações
 
 `HistoryEntry` deve ser um registro local de evento relevante, com ID, tipo, origem, destino quando aplicável, resultado, timestamps e referência à entidade relacionada. Não deve ser um dump de logs técnicos nem armazenar conteúdo sensível por padrão.
@@ -232,12 +234,14 @@ O contrato deve associar cada estado a um rótulo textual em português brasilei
 ### Nesta task
 
 - `docs/tasks/TASK-01-modelos-de-dominio-e-estados.md`: registrar o contrato, decisões, invariantes e validação desta task.
+- `src/types/index.ts`: implementar os tipos canônicos TypeScript, estados, limites de conteúdo, eventos e tabelas de transição.
+- `src-tauri/src/domain/mod.rs`: implementar os modelos puros Rust equivalentes e as transições sem acoplamento à bridge.
 
-### Na implementação posterior do contrato
+### Fora desta implementação
 
-- `src/types/index.ts`: substituir a dependência dos tipos mockados por tipos canônicos, preservando adaptadores de apresentação até a TASK 10.
-- `src-tauri/src/`: adicionar os modelos Rust equivalentes nos domínios corretos, somente quando as tasks de implementação forem iniciadas.
-- `src/stores/`: adaptar o estado Vue apenas na TASK 10; não alterar os mocks como efeito colateral desta definição.
+- `src/stores/`: o estado Vue continua mockado; a adaptação para entidades canônicas fica para a TASK 10.
+- `src-tauri/src/lib.rs`: apenas registra o módulo puro de domínio; commands, eventos IPC e listeners ficam para as TASKS 05 e 09.
+- Serialização, persistência, discovery, pairing real, rede e capabilities Tauri permanecem fora desta task.
 
 ## Execução paralela
 
@@ -250,24 +254,26 @@ A investigação foi paralelizada porque havia recortes independentes e nenhum s
 
 Não há paralelismo de implementação nesta etapa: os tipos TypeScript e Rust só devem ser criados depois de o vocabulário comum ser consolidado, e `src/types/index.ts` seria um arquivo compartilhado. A execução paralela futura deve usar arquivos disjuntos.
 
+Nesta execução, a implementação foi integrada sequencialmente para revisar a equivalência dos arquivos TypeScript e Rust antes da validação. Os fixtures receberam apenas tipos explícitos de mock (`MockDevice` e `MockTransfer`); seus dados e comportamento não foram alterados.
+
 ## Integração
 
 - Primeiro integrar as decisões semânticas deste arquivo; depois revisar os nomes e estados em TypeScript e Rust lado a lado.
-- Se a implementação for iniciada, tipos puros TypeScript e tipos puros Rust podem ser trabalhados em paralelo em arquivos disjuntos, desde que ambos sigam este contrato. A equivalência deve ser revisada antes de qualquer bridge.
+- Tipos puros TypeScript e tipos puros Rust podem ser trabalhados em paralelo em arquivos disjuntos, desde que ambos sigam este contrato. Nesta execução, a equivalência foi revisada antes de qualquer bridge.
 - O mapa de adaptação para `src/stores/devices.ts` e `src/stores/transfers.ts` fica sequencial e reservado à TASK 10.
 - `src/types/index.ts`, `docs/tasks/TASK-01-modelos-de-dominio-e-estados.md` e o ponto de registro de módulos Rust não devem ser editados por subagentes em paralelo sem uma divisão explícita de ownership.
-- `src-tauri/src/lib.rs` e `src/composables/useRustBridge.ts` não entram na implementação da TASK 01; commands, eventos, serialização e listeners ficam para a TASK 05/09.
+- `src-tauri/src/lib.rs` só recebe o registro do módulo puro; `src/composables/useRustBridge.ts` não entra na implementação. Commands, eventos, serialização e listeners ficam para as TASKS 05 e 09.
 - A integração não deve alterar os mocks, rotas ou placeholders atuais nem transformar o command `greet` em API de produto.
 
 ## Critérios de conclusão
 
-- [ ] Cada entidade do escopo possui identidade, relações, timestamps e estado definidos.
-- [ ] Presença, pairing, trust e capability são independentes e não podem ser confundidos por um booleano.
-- [ ] As transições válidas, terminais e invariantes de cada ciclo foram revisadas.
-- [ ] O contrato contempla arquivos/pastas, texto/links, Clipboard, histórico, notificações, mídia e comandos remotos sem prometer comportamento ainda não implementado.
-- [ ] O vocabulário textual da UI representa loading, stale, offline, erro, recusa, cancelamento e conclusão de modo explícito.
-- [ ] O contrato não fixa transporte, persistência ou permissões Tauri antes das tasks responsáveis.
-- [ ] A relação entre o contrato canônico e os mocks atuais está documentada.
+- [x] Cada entidade do escopo possui identidade, relações, timestamps e estado definidos.
+- [x] Presença, pairing, trust e capability são independentes e não podem ser confundidos por um booleano.
+- [x] As transições válidas, terminais e invariantes de cada ciclo foram revisadas.
+- [x] O contrato contempla arquivos/pastas, texto/links, Clipboard, histórico, notificações, mídia e comandos remotos sem prometer comportamento ainda não implementado.
+- [x] O vocabulário textual da UI representa loading, stale, offline, erro, recusa, cancelamento e conclusão de modo explícito.
+- [x] O contrato não fixa transporte, persistência ou permissões Tauri antes das tasks responsáveis.
+- [x] A relação entre o contrato canônico e os mocks atuais está documentada.
 
 ## Validação
 
@@ -276,7 +282,10 @@ Não há paralelismo de implementação nesta etapa: os tipos TypeScript e Rust 
 - Conferir que nenhum estado terminal pode ser exibido como sucesso parcial ou como dispositivo online.
 - Confirmar que `online`, `lastSeen: "agora"` e `in-progress` permanecem identificados como representação mockada até a integração posterior.
 - Executar uma revisão de cenários: descoberta sem confiança, pairing recusado, revogação durante transferência, capability ausente, peer offline, retomada após falha, notificação dispensada e comando remoto não autorizado.
-- Não executar alterações de código ou smoke tests de funcionalidade nesta task; a validação de tipos Rust/Vue e da bridge fica para as tasks 05, 06 e 09.
+- `npm run typecheck`: passou.
+- `npm run build`: passou; os mocks e a prévia web continuam compilando sem integração real.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passou.
+- A bridge, a persistência, o transporte e os smoke tests de funcionalidade continuam adiados para as tasks responsáveis.
 
 ## Dependências desbloqueadas
 

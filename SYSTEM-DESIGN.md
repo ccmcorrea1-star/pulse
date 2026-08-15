@@ -108,6 +108,8 @@ Não há comandos de domínio, eventos, listeners, sockets, processos auxiliares
 
 Os diretórios abaixo existem com `.gitkeep`, mas não têm implementação. Eles são pontos de organização, não módulos ativos:
 
+`src-tauri/src/domain/` é a exceção: contém somente modelos puros e transições do domínio, ainda sem commands, eventos IPC ou serviços ativos.
+
 | Módulo | Responsabilidade planejada |
 | --- | --- |
 | `discovery/` | Encontrar e acompanhar presença de dispositivos na rede local. |
@@ -141,11 +143,11 @@ flowchart LR
 4. **Discovery/transport/protocol:** descobre peers e move mensagens diretamente pela rede local.
 5. **Serviços de recurso:** implementam transferências, Clipboard, mídia, notificações e comandos sob autorização.
 
-A UI deve depender de modelos de domínio estáveis e eventos, não de uma implementação específica de transporte. A escolha concreta entre UDP/mDNS, TCP, WebSocket ou outra combinação ainda é planejada; não está definida no código atual.
+A UI deve depender de modelos de domínio estáveis e eventos, não de uma implementação específica de transporte. A TASK 02 registra a decisão arquitetural de usar mDNS/DNS-SD para discovery e QUIC v1 para o transporte direto; essa decisão ainda não está implementada no código atual.
 
 ## Modelo de capabilities — direção
 
-Capabilities são uma proposta de autorização por dispositivo, não um modelo já implementado. A intenção é separar “o dispositivo está pareado” de “este recurso pode ser usado”. Exemplos iniciais:
+Capabilities continuam sendo uma proposta de autorização operacional por dispositivo, embora o vocabulário canônico já esteja modelado em TypeScript e Rust. A intenção é separar “o dispositivo está pareado” de “este recurso pode ser usado”. Exemplos iniciais:
 
 | Capability | Escopo pretendido |
 | --- | --- |
@@ -166,7 +168,7 @@ Discovery deve localizar candidatos na rede local e expor presença sem conceder
 
 ### Transfer — planejado
 
-O serviço deve tratar arquivos e pastas como sessões observáveis, com origem, destino, estado, progresso, erro e cancelamento. Pausa/retomada, limites de tamanho/tipo, colisões de nome e retomada após falha precisam de decisões próprias. O `Transfer` atual é apenas um tipo e um mock visual.
+O serviço deve tratar arquivos e pastas como sessões observáveis, com origem, destino, estado, progresso, erro e cancelamento. Pausa/retomada, limites de tamanho/tipo, colisões de nome e retomada após falha precisam de decisões próprias. O `MockTransfer` atual continua sendo apenas um fixture visual; o `TransferSession` canônico ainda não está conectado a um serviço.
 
 ### Clipboard, texto e links — planejado
 

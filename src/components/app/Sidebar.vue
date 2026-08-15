@@ -5,7 +5,7 @@ import { RouterLink, useRoute } from "vue-router";
 
 import BrandMark from "@/components/ui/BrandMark.vue";
 import { useDevicesStore } from "@/stores/devices";
-import type { Device } from "@/types";
+import type { MockDevice } from "@/types";
 
 const route = useRoute();
 const devicesStore = useDevicesStore();
@@ -16,7 +16,7 @@ const mainNav: Array<{ label: string; to: string; icon: Component }> = [
   { label: "Histórico", to: "/history", icon: History },
 ];
 
-const deviceIcon = (device: Device) => (device.platform === "linux" ? Monitor : Smartphone);
+const deviceIcon = (device: MockDevice) => (device.platform === "linux" ? Monitor : Smartphone);
 const isNavActive = (to: string) => (to === "/" ? route.path === "/" : route.path.startsWith(to));
 const isDeviceActive = (id: string) => route.params.id === id;
 const onlineCount = computed(() => devicesStore.onlineDevices.length);

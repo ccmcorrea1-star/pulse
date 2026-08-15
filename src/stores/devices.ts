@@ -1,9 +1,9 @@
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
-import type { Device } from "@/types";
+import type { MockDevice } from "@/types";
 
-const mockDevices: Device[] = [
+const mockDevices: MockDevice[] = [
   {
     id: "pulse-desktop",
     name: "Pulse Desktop",
@@ -28,7 +28,7 @@ const mockDevices: Device[] = [
 ];
 
 export const useDevicesStore = defineStore("devices", () => {
-  const devices = ref<Device[]>(mockDevices);
+  const devices = ref<MockDevice[]>(mockDevices);
   const selectedDeviceId = ref("studio-phone");
   const selectedDevice = computed(() => devices.value.find((device) => device.id === selectedDeviceId.value));
   const onlineDevices = computed(() => devices.value.filter((device) => device.online));
