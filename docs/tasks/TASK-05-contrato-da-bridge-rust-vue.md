@@ -121,9 +121,9 @@ O contrato terá eventos nomeados e namespaced:
 
 | Evento | Conteúdo | Regra |
 | --- | --- | --- |
-| `pulse.bridge.status` | estado do runtime/bridge e motivo público | não contém erro bruto nem detalhe de infraestrutura |
-| `pulse.domain.event` | `DomainEvent` em envelope de bridge | fonte incremental de mudança de domínio |
-| `pulse.domain.snapshot-invalidated` | motivo e sequência do stream | solicita novo snapshot quando houver gap, evento inválido ou ressincronização necessária |
+| `pulse:bridge:status` | estado do runtime/bridge e motivo público | não contém erro bruto nem detalhe de infraestrutura |
+| `pulse:domain:event` | `DomainEvent` em envelope de bridge | fonte incremental de mudança de domínio |
+| `pulse:domain:snapshot-invalidated` | motivo e sequência do stream | solicita novo snapshot quando houver gap, evento inválido ou ressincronização necessária |
 
 O payload de evento será:
 
@@ -141,7 +141,7 @@ type BridgeEvent<T> = {
 
 `streamId` muda quando o runtime reinicia; `sequence` é monotônica dentro do stream. O adaptador deduplica `eventId`, detecta salto de sequência e solicita snapshot antes de expor uma leitura como atual. A ordem de chegada de callbacks assíncronos não é tratada como ordem de domínio; o consumidor precisa aplicar a sequência/eventual ressincronização.
 
-Eventos são para fatos pequenos e mudanças de estado. Progresso de alta frequência, bytes de arquivo e conteúdo grande não serão enviados por `pulse.domain.event`; a task responsável poderá adotar Tauri Channels com limites e backpressure. O contrato nunca transforma um evento JSON em transporte de arquivo.
+Eventos são para fatos pequenos e mudanças de estado. Progresso de alta frequência, bytes de arquivo e conteúdo grande não serão enviados por `pulse:domain:event`; a task responsável poderá adotar Tauri Channels com limites e backpressure. O contrato nunca transforma um evento JSON em transporte de arquivo.
 
 Listeners serão registrados uma vez pelo cliente de bridge no ciclo de vida da aplicação, preferencialmente após criar a assinatura e antes de pedir `bridge_get_snapshot`. O cliente deve:
 

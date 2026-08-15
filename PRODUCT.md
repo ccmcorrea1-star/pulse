@@ -44,7 +44,7 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 - Stores Pinia efêmeras para aplicação, dispositivos e transferências.
 - Dois registros mockados de transferência, incluindo progresso e fila visual na página inicial.
 - Tela de configuração capaz de testar a comunicação Vue ↔ Rust por meio do command `greet`.
-- Infraestrutura bridge tipada para consultar info/snapshot público e observar o status do runtime; isso ainda não conecta estado de produto aos stores.
+- Infraestrutura bridge tipada e bootstrap Vue para consultar info/snapshot público, observar eventos/status do runtime e manter o estado de infraestrutura nos stores; o estado de produto continua não configurado.
 - Interface dark, compacta e responsiva em desktop, com adaptação básica para larguras menores.
 - Fundação de persistência SQLite local no Rust, com schema versionado, migrations forward-only e proteção contra corrupção/incompatibilidade; os stores Vue ainda não são hidratados por ela.
 
@@ -52,7 +52,7 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 
 - O router já reserva os destinos das áreas funcionais por dispositivo.
 - `src-tauri/src/` contém diretórios preparados para `discovery`, `pairing`, `device`, `protocol`, `transfer`, `clipboard` e `media`, ainda sem implementação de domínio.
-- O contrato canônico de domínio já está estruturado em TypeScript e em modelos puros Rust; os stores e a UI ainda usam tipos explícitos de mock até a integração da bridge.
+- O contrato canônico de domínio já está estruturado em TypeScript e em modelos puros Rust; os stores usam adaptadores de apresentação e mantêm fixtures isoladas no boundary de desenvolvimento enquanto não há dados de produto.
 - A configuração de capabilities Tauri existe e hoje concede somente `core:default`.
 
 ### Ainda não implementado
@@ -62,7 +62,7 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 - Transferência real de arquivos ou pastas, incluindo seleção, fila, pausa, retomada e cancelamento.
 - Clipboard entre dispositivos, envio de texto/links e histórico persistente.
 - Notificações, mídia, controle remoto e comandos.
-- Hidratação dos stores e persistência funcional de dispositivos, transferências, identidade e histórico; sincronização de eventos de produto e qualquer protocolo de rede.
+- Dados reais de dispositivos/transferências, persistência funcional de produto, identidade, histórico, sincronização de eventos de produto e qualquer protocolo de rede.
 
 ## Funcionalidades e roadmap
 
@@ -70,12 +70,12 @@ O roadmap abaixo descreve direção funcional. Ele não representa código já d
 
 | Capacidade | Estado atual | Próxima direção |
 | --- | --- | --- |
-| Dispositivos | Lista mockada e rotas de contexto | Discovery local, detalhes e atualização de presença |
+| Dispositivos | Fixture de desenvolvimento, fonte vazia fora de DEV e rotas de contexto | Discovery local, detalhes e atualização de presença |
 | Pareamento e confiança | Não existe; apenas estrutura de módulos | Pareamento explícito, identidade verificável e permissões por capacidade |
 | Arquivos e pastas | Aba reservada; sem picker ou transporte | Envio local direto com progresso, fila, pausa e retomada |
 | Texto e links | Não há fluxo funcional | Tratar como conteúdo leve dentro do envio local |
 | Clipboard | Aba reservada; sem leitura ou escrita remota | Compartilhamento controlado de texto, links e tipos suportados |
-| Transferências | Preview mockado no Início e rota vazia | Serviço de transferência, estados reais e cancelamento/retomada |
+| Transferências | Preview de fixture de desenvolvimento e rota vazia | Serviço de transferência, estados reais e cancelamento/retomada |
 | Histórico | Rota e estado vazio; schema local preparado | Registro local de eventos, origem, destino e resultado via bridge |
 | Notificações | Não existe | Avisos locais para pedidos, conclusão e falha |
 | Mídia | Rota com placeholder | Leitura e controle de mídia sob capability explícita |

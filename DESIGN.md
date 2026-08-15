@@ -14,7 +14,7 @@ O copy da interface é em português brasileiro, direto e orientado à ação. E
 
 - `AppShell` compõe a aplicação em sidebar + área de conteúdo.
 - A sidebar global contém a marca Pulse, `Início`, `Transferências`, `Histórico`, a lista de dispositivos e `Configurações`.
-- A lista de dispositivos é alimentada pelo store mockado e usa a rota `/device/:id` como contexto selecionado.
+- A lista de dispositivos é alimentada pelo store de apresentação, que identifica se a fonte é fixture de desenvolvimento ou vazio não configurado, e usa a rota `/device/:id` como contexto selecionado.
 - A área principal tem cabeçalho com o contexto `rede local / ambiente de base`, o estado `shell pronto` e o acesso às configurações.
 - A navegação usa Vue Router; não há abas implementadas no HTML legado como fonte paralela.
 
@@ -30,7 +30,7 @@ As cinco rotas existem. Hoje, as seções usam `DeviceSectionView`; Mídia tamb�
 
 | View | Papel atual |
 | --- | --- |
-| `HomeView` | Apresenta a fundação, as fronteiras futuras, dispositivos mockados e preview de transferências mockadas. |
+| `HomeView` | Apresenta a fundação, as fronteiras futuras e coleções vindas de fixture de desenvolvimento ou de estado vazio não configurado. |
 | `TransfersView` | Reserva a fila de transferências; ações de envio e pausa estão desabilitadas. |
 | `HistoryView` | Reserva a leitura de histórico; mostra estado vazio sem persistência. |
 | `DeviceView` + `DeviceSectionView` | Oferece o contexto do dispositivo e as cinco abas preparadas. |
@@ -101,7 +101,8 @@ A fonte de verdade dos tokens é [`src/styles/index.css`](src/styles/index.css).
 Estados já representados na UI:
 
 - fundação inicial / shell pronto;
-- mock local sem networking;
+- fixture de desenvolvimento sem networking;
+- bridge em sincronização, estado observado, offline/não configurado ou erro de sincronização;
 - dispositivo online ou offline, sempre com texto;
 - transferência em andamento ou na fila, sempre com percentual/status textual;
 - rota preparada, estrutura inicial e vazio;

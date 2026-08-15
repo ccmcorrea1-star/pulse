@@ -96,11 +96,11 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
   - Critérios de conclusão: A bridge transporta estados e eventos de infraestrutura tipados, trata erro e desconexão, e mantém o fallback web explicitamente demonstrativo; não há ainda estado de produto.
   - Validação: Testes de contrato Rust/Vue, compilação do shell e smoke test da aplicação Tauri.
 
-- [ ] TASK 10 — Integrar modelos reais ao estado do Vue
+- [x] TASK 10 — Integrar modelos reais ao estado do Vue
   - Objetivo: Substituir o acesso direto a dados mockados por stores e adaptadores baseados nos contratos da bridge.
   - Escopo: Estados de carregamento/erro/vazio/stale, sincronização por eventos, seleção de dispositivo, boundary de fixtures e remoção de estados que insinuem operação real.
   - Dependências: TASK 01, TASK 05 e TASK 09.
-  - Critérios de conclusão: A UI usa uma fonte de estado explícita; fixtures só aparecem em modo de desenvolvimento e são rotuladas como tal.
+  - Critérios de conclusão: A UI usa uma fonte de estado explícita; fixtures só aparecem em modo de desenvolvimento e são rotuladas como tal; o estado de produto ainda não configurado não é fabricado.
   - Validação: Testes de stores e navegação com respostas vazias, atrasadas, duplicadas e com erro.
 
 ## Fase 3 — Discovery e presença de dispositivos
@@ -408,4 +408,4 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Próxima task recomendada
 
-**TASK 10 — Integrar modelos reais ao estado do Vue.** A bridge de infraestrutura agora está tipada e redigida; a próxima etapa deve hidratar stores com snapshot/eventos, mantendo mocks rotulados e estados de loading, erro, vazio, stale e offline honestos.
+**TASK 11 — Implementar discovery local de candidatos.** A UI agora hidrata o estado público da bridge e mantém fixtures somente em desenvolvimento; o próximo passo de produto é produzir candidatos reais de discovery sem conceder confiança automaticamente.

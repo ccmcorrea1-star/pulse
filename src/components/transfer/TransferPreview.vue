@@ -8,6 +8,10 @@ const transfersStore = useTransfersStore();
 
 <template>
   <div class="divide-y divide-border rounded-panel border border-border bg-surface">
+    <div v-if="!transfersStore.activeTransfers.length" class="px-4 py-8 text-center">
+      <p class="text-sm font-medium text-foreground">Nenhuma transferência disponível</p>
+      <p class="mt-1 text-xs leading-5 text-muted">A fila real ainda não está configurada.</p>
+    </div>
     <div v-for="transfer in transfersStore.activeTransfers" :key="transfer.id" class="px-4 py-4">
       <div class="flex items-start gap-3">
         <span class="grid size-8 shrink-0 place-items-center rounded-control bg-info/10 text-info">
@@ -26,7 +30,7 @@ const transfersStore = useTransfersStore();
           </div>
           <div class="mt-2 flex items-center gap-1.5 text-[11px] text-muted">
             <Clock3 :size="12" />
-            <span>{{ transfer.status === "queued" ? "aguardando estrutura de fila" : `estado mock · atualizado ${transfer.updatedAt}` }}</span>
+            <span>{{ transfer.status === "queued" ? "aguardando estrutura de fila" : transfersStore.isDemo ? `fixture · atualizado ${transfer.updatedAt}` : "estado não configurado" }}</span>
           </div>
         </div>
       </div>

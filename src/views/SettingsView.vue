@@ -13,6 +13,14 @@ const bridgeLabel = computed(() => {
   if (appStore.bridgeState === "error") return "falha na bridge";
   return "não testada";
 });
+const syncLabel = computed(() => {
+  if (appStore.bridgeSyncState === "loading") return "sincronizando";
+  if (appStore.bridgeSyncState === "ready") return "estado observado";
+  if (appStore.bridgeSyncState === "stale") return "estado desatualizado";
+  if (appStore.bridgeSyncState === "offline") return "offline / não configurado";
+  if (appStore.bridgeSyncState === "error") return "erro na sincronização";
+  return "aguardando inicialização";
+});
 </script>
 
 <template>
@@ -29,7 +37,7 @@ const bridgeLabel = computed(() => {
           <span class="grid size-9 place-items-center rounded-control border border-border bg-background text-accent"><Settings2 :size="17" /></span>
           <div>
             <h2 class="text-sm font-semibold text-foreground">Comunicação Vue ↔ Rust</h2>
-            <p class="mt-1 text-xs leading-5 text-muted">O command <code>greet</code> continua como smoke test; a bridge tipada de infraestrutura não exige permissões extras.</p>
+            <p class="mt-1 text-xs leading-5 text-muted">O command <code>greet</code> continua como smoke test. A leitura inicial da bridge é {{ syncLabel }} e ainda não há estado de produto.</p>
           </div>
         </div>
         <div class="mt-5 flex flex-wrap items-center gap-3">
@@ -53,6 +61,8 @@ const bridgeLabel = computed(() => {
           <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Interface</dt><dd class="text-foreground">Vue 3 + Vite</dd></div>
           <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Tema</dt><dd class="text-foreground">dark / compacto</dd></div>
           <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Permissões</dt><dd class="text-foreground">core:default</dd></div>
+          <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Modo da bridge</dt><dd class="text-foreground">{{ appStore.bridgeMode ?? "não observado" }}</dd></div>
+          <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Runtime</dt><dd class="text-foreground">{{ appStore.runtimePhase ?? "não observado" }}</dd></div>
         </dl>
       </section>
     </div>

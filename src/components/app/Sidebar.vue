@@ -5,10 +5,12 @@ import { RouterLink, useRoute } from "vue-router";
 
 import BrandMark from "@/components/ui/BrandMark.vue";
 import { useDevicesStore } from "@/stores/devices";
-import type { MockDevice } from "@/types";
+import { useTransfersStore } from "@/stores/transfers";
+import type { DeviceListItem } from "@/types";
 
 const route = useRoute();
 const devicesStore = useDevicesStore();
+const transfersStore = useTransfersStore();
 
 const mainNav: Array<{ label: string; to: string; icon: Component }> = [
   { label: "Início", to: "/", icon: Home },
@@ -16,7 +18,12 @@ const mainNav: Array<{ label: string; to: string; icon: Component }> = [
   { label: "Histórico", to: "/history", icon: History },
 ];
 
-const deviceIcon = (device: MockDevice) => (device.platform === "linux" ? Monitor : Smartphone);
+const deviceIcon = (device: DeviceListItem) => (device.platform === "linux" ? Monitor : Smartphone);
+const presenceClass = (device: DeviceListItem) => {
+  if (device.presence === "online") return "bg-success";
+  if (device.presence === "stale") return "bg-warning";
+  return "bg-muted";
+};
 const isNavActive = (to: string) => (to === "/" ? route.path === "/" : route.path.startsWith(to));
 const isDeviceActive = (id: string) => route.params.id === id;
 const onlineCount = computed(() => devicesStore.onlineDevices.length);
@@ -46,7 +53,7 @@ const onlineCount = computed(() => devicesStore.onlineDevices.length);
       >
         <component :is="item.icon" :size="17" :stroke-width="1.8" :class="isNavActive(item.to) ? 'text-accent' : 'text-muted'" />
         <span>{{ item.label }}</span>
-        <span v-if="item.to === '/transfers'" class="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[10px] text-warning">2</span>
+        <span v-if="item.to === '/transfers' && transfersStore.activeTransfers.length" class="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[10px] text-warning">{{ transfersStore.activeTransfers.length }}</span>
       </RouterLink>
     </nav>
 
@@ -67,7 +74,7 @@ const onlineCount = computed(() => devicesStore.onlineDevices.length);
         >
           <span class="relative grid size-7 shrink-0 place-items-center rounded-control border border-border bg-background">
             <component :is="deviceIcon(device)" :size="15" :stroke-width="1.7" />
-            <span :class="['absolute -right-0.5 -top-0.5 size-2 rounded-full border-2 border-surface', device.online ? 'bg-success' : 'bg-muted']" />
+            <span :class="['absolute -right-0.5 -top-0.5 size-2 rounded-full border-2 border-surface', presenceClass(device)]" />
           </span>
           <span class="min-w-0 flex-1 truncate">{{ device.name }}</span>
         </RouterLink>

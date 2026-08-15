@@ -5,7 +5,7 @@ import { RouterLink, RouterView, useRoute } from "vue-router";
 
 import Badge from "@/components/ui/badge/Badge.vue";
 import { useDevicesStore } from "@/stores/devices";
-import type { MockDevice } from "@/types";
+import type { DeviceListItem } from "@/types";
 
 const route = useRoute();
 const devicesStore = useDevicesStore();
@@ -17,7 +17,13 @@ const tabs = [
   { label: "Mídia", name: "device-media" },
   { label: "Controle", name: "device-control" },
 ];
-const iconFor = (currentDevice: MockDevice) => (currentDevice.platform === "linux" ? Monitor : Smartphone);
+const iconFor = (currentDevice: DeviceListItem) => (currentDevice.platform === "linux" ? Monitor : Smartphone);
+const isOnline = (currentDevice: DeviceListItem) => currentDevice.presence === "online";
+const presenceLabel = (currentDevice: DeviceListItem) => {
+  if (currentDevice.presence === "online") return "online";
+  if (currentDevice.presence === "stale") return "desatualizado";
+  return "offline";
+};
 </script>
 
 <template>
@@ -29,9 +35,9 @@ const iconFor = (currentDevice: MockDevice) => (currentDevice.platform === "linu
         <div>
           <div class="flex flex-wrap items-center gap-2">
             <h1 class="text-2xl font-semibold tracking-[-0.03em] text-foreground">{{ device.name }}</h1>
-            <Badge :variant="device.online ? 'default' : 'muted'"><span :class="['size-1.5 rounded-full', device.online ? 'bg-success' : 'bg-muted']" />{{ device.online ? 'online' : 'offline' }}</Badge>
+            <Badge :variant="isOnline(device) ? 'default' : 'muted'"><span :class="['size-1.5 rounded-full', isOnline(device) ? 'bg-success' : device.presence === 'stale' ? 'bg-warning' : 'bg-muted']" />{{ presenceLabel(device) }}</Badge>
           </div>
-          <p class="mt-1 text-sm text-muted">Rota preparada para módulos do dispositivo · dados mockados</p>
+          <p class="mt-1 text-sm text-muted">Rota preparada para módulos do dispositivo · {{ devicesStore.isDemo ? "fixture de desenvolvimento" : "estado não configurado" }}</p>
         </div>
       </div>
     </div>
@@ -49,6 +55,6 @@ const iconFor = (currentDevice: MockDevice) => (currentDevice.platform === "linu
   </section>
   <section v-else class="mx-auto max-w-xl rounded-panel border border-border bg-surface p-8">
     <h1 class="text-lg font-semibold text-foreground">Dispositivo não encontrado</h1>
-    <p class="mt-2 text-sm text-muted">O identificador informado não existe nos dados mockados.</p>
+    <p class="mt-2 text-sm text-muted">O identificador informado não existe na fonte de dispositivos disponível.</p>
   </section>
 </template>

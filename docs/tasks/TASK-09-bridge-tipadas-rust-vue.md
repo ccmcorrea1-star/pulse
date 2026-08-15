@@ -53,7 +53,7 @@ Foram registrados em um único `generate_handler!`:
 - `bridge_get_info`: leitura versionada com modo `tauri`, versão da bridge/modelo, fase pública do runtime e `productCommandsAvailable=false`;
 - `bridge_get_snapshot`: leitura versionada com fase pública e `productState=not-configured`, retornando `offline` enquanto serviços de produto não estiverem ativos.
 
-Não haverá command genérico, SQL, snapshot de dispositivos fabricado, mutation de storage ou command de efeito. A emissão de `pulse.bridge.status` ocorrerá no `setup` depois do start do runtime e conterá somente fase pública, versão, stream, sequência e disponibilidade de commands.
+Não haverá command genérico, SQL, snapshot de dispositivos fabricado, mutation de storage ou command de efeito. A emissão de `pulse:bridge:status` ocorrerá no `setup` depois do start do runtime e conterá somente fase pública, versão, stream, sequência e disponibilidade de commands. O separador `:` é necessário porque o Tauri 2 rejeita pontos em nomes de eventos.
 
 ### 2. DTOs Rust ↔ TypeScript
 
@@ -126,7 +126,7 @@ A implementação será sequenciada por fronteira: DTO/commands Rust, cliente Ty
 
 - [x] `serde`/DTOs Rust e tipos TypeScript compartilham envelope, nomes, versões e códigos fechados.
 - [x] `bridge_get_info` e `bridge_get_snapshot` são registrados e retornam somente estado público/redigido.
-- [x] `pulse.bridge.status` é emitido no startup com stream/sequência e sem dados de infraestrutura.
+- [x] `pulse:bridge:status` é emitido no startup com stream/sequência e sem dados de infraestrutura.
 - [x] Requests rejeitam versão, ID, payload e campos desconhecidos inválidos antes do runtime.
 - [x] Erros de command são serializáveis, fechados, retryable e sem mensagem bruta.
 - [x] Cliente frontend centraliza `invoke`/`listen`, preserva fallback web e não simula sucesso de produto.
@@ -162,7 +162,7 @@ A implementação será sequenciada por fronteira: DTO/commands Rust, cliente Ty
 | Campo desconhecido | Desserialização/validação falha como `invalid-request`; nenhum dado bruto é propagado. |
 | Runtime parcial | Info/snapshot exibem fase pública e `offline/not-configured`, sem dispositivos falsos. |
 | Erro interno | Bridge retorna código/copy key fechados, sem path/SQL/mensagem de crate. |
-| Startup | Evento `pulse.bridge.status` tem versão, stream, sequência e payload redigido. |
+| Startup | Evento `pulse:bridge:status` tem versão, stream, sequência e payload redigido. |
 | Evento duplicado | Cliente entrega no máximo uma vez por `eventId`. |
 | Gap/out-of-order | Cliente não entrega como atual e solicita ressincronização. |
 | Web preview | `greet` segue demo; commands/listeners de produto não chamam Tauri nem simulam sucesso. |
@@ -177,4 +177,4 @@ A implementação será sequenciada por fronteira: DTO/commands Rust, cliente Ty
 - `cargo fmt --manifest-path src-tauri/Cargo.toml -- --check` — passou após aplicar o formatter.
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passou.
 - `git diff --check` — passou.
-- Smoke de registro Tauri: a compilação confirma que o shell registra `greet`, `bridge_get_info` e `bridge_get_snapshot`; o evento inicial `pulse.bridge.status` é emitido após o runtime iniciar. Não foram adicionados serviços de produto, rede ou capabilities.
+- `npm run tauri:dev` — shell iniciou e permaneceu ativo sem panic de setup; o evento inicial `pulse:bridge:status` foi aceito após o runtime iniciar. O processo foi interrompido manualmente depois da confirmação. Não foram adicionados serviços de produto, rede ou capabilities.

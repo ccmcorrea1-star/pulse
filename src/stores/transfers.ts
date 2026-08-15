@@ -1,7 +1,7 @@
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
-import type { MockTransfer } from "@/types";
+import type { BridgeReadStatus, CollectionSource, CollectionSyncState, MockTransfer, TransferListItem } from "@/types";
 
 const mockTransfers: MockTransfer[] = [
   {
@@ -25,8 +25,41 @@ const mockTransfers: MockTransfer[] = [
 ];
 
 export const useTransfersStore = defineStore("transfers", () => {
-  const transfers = ref<MockTransfer[]>(mockTransfers);
+  const developmentFixturesEnabled = import.meta.env.DEV;
+  const transfers = ref<TransferListItem[]>(developmentFixturesEnabled ? mockTransfers.map(toListItem) : []);
+  const source = ref<CollectionSource>(developmentFixturesEnabled ? "development-fixture" : "empty");
+  const syncState = ref<CollectionSyncState>(developmentFixturesEnabled ? "ready" : "offline");
   const activeTransfers = computed(() => transfers.value.filter((transfer) => transfer.status !== "complete"));
+  const isDemo = computed(() => source.value === "development-fixture");
+  const sourceLabel = computed(() => (isDemo.value ? "fixture de desenvolvimento" : "sem dados conectados"));
 
-  return { transfers, activeTransfers };
+  function applyBridgeStatus(status: BridgeReadStatus) {
+    syncState.value = status === "success" ? "ready" : status;
+    if (!developmentFixturesEnabled) {
+      source.value = "empty";
+      transfers.value = [];
+    }
+  }
+
+  function markError() {
+    syncState.value = "error";
+    if (!developmentFixturesEnabled) {
+      source.value = "empty";
+      transfers.value = [];
+    }
+  }
+
+  return { transfers, activeTransfers, source, sourceLabel, syncState, isDemo, applyBridgeStatus, markError };
 });
+
+function toListItem(transfer: MockTransfer): TransferListItem {
+  return {
+    id: transfer.id,
+    name: transfer.name,
+    type: transfer.type,
+    status: transfer.status === "in-progress" ? "active" : transfer.status === "complete" ? "complete" : "queued",
+    progress: transfer.progress,
+    deviceName: transfer.deviceName,
+    updatedAt: transfer.updatedAt,
+  };
+}

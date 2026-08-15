@@ -17,10 +17,10 @@ Se a implementação e a documentação divergirem, verifique o código primeiro
 ## Estado atual que importa para agentes
 
 - O app atual é Vue 3 + TypeScript + Vite dentro de Tauri 2; o ponto de entrada é `src/main.ts` e o shell Rust está em `src-tauri/src/`.
-- Os contratos canônicos de domínio estão estruturados em `src/types/index.ts` e nos modelos puros de `src-tauri/src/domain/`; a bridge tipada de infraestrutura está conectada ao runtime, mas os contratos de domínio ainda não hidratam stores nem serviços de produto.
-- Dispositivos e transferências ainda são mocks efêmeros de Pinia. Há somente a fundação de storage SQLite local atrás do runtime; não há discovery, pairing, rede, hidratação da UI, Clipboard, mídia ou transferências reais.
+- Os contratos canônicos de domínio estão estruturados em `src/types/index.ts` e nos modelos puros de `src-tauri/src/domain/`; o bootstrap da bridge de infraestrutura agora hidrata o estado público do runtime, mas os contratos de domínio ainda não alimentam serviços ou dados de produto.
+- Dispositivos e transferências ainda são fixtures efêmeras de Pinia, limitadas ao desenvolvimento e rotuladas na UI. Há somente a fundação de storage SQLite local atrás do runtime; não há discovery, pairing, rede, dados de produto, Clipboard, mídia ou transferências reais.
 - A TASK 02 decidiu mDNS/DNS-SD para discovery local e QUIC v1 via `quinn` para transporte direto, mas essa decisão ainda não está implementada: não há dependências de rede, sockets ou comandos de produção no repositório.
-- Os commands Rust incluem `greet` (smoke test) e `bridge_get_info`/`bridge_get_snapshot` (infraestrutura tipada); o evento `pulse.bridge.status` é emitido no startup. Nenhum command de produto existe.
+- Os commands Rust incluem `greet` (smoke test) e `bridge_get_info`/`bridge_get_snapshot` (infraestrutura tipada); o evento `pulse:bridge:status` é emitido no startup. Nenhum command de produto existe.
 - As rotas de dispositivo já reservam `Visão geral`, `Arquivos`, `Clipboard`, `Mídia` e `Controle`, mas a maior parte delas é placeholder.
 - `10-pulse-resumo.html` é um protótipo legado; não é o ponto de entrada do aplicativo atual.
 

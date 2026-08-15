@@ -1,9 +1,9 @@
 import type { DomainEventId, UtcTimestamp } from "./index";
 
 export const BRIDGE_CONTRACT_VERSION = 1 as const;
-export const BRIDGE_STATUS_EVENT = "pulse.bridge.status" as const;
-export const DOMAIN_EVENT_EVENT = "pulse.domain.event" as const;
-export const SNAPSHOT_INVALIDATED_EVENT = "pulse.domain.snapshot-invalidated" as const;
+export const BRIDGE_STATUS_EVENT = "pulse:bridge:status" as const;
+export const DOMAIN_EVENT_EVENT = "pulse:domain:event" as const;
+export const SNAPSHOT_INVALIDATED_EVENT = "pulse:domain:snapshot-invalidated" as const;
 
 export type BridgeContractVersion = typeof BRIDGE_CONTRACT_VERSION;
 export type BridgeMode = "tauri" | "web-preview";

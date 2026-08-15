@@ -18,7 +18,7 @@ const transfersStore = useTransfersStore();
       <div class="max-w-3xl">
         <div class="flex flex-wrap items-center gap-2">
           <Badge><span class="size-1.5 rounded-full bg-success" /> fundação inicial</Badge>
-          <Badge variant="muted">mock local · sem networking</Badge>
+          <Badge variant="muted">{{ devicesStore.sourceLabel }} · sem networking</Badge>
         </div>
         <h1 class="mt-5 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">Um shell calmo para acompanhar seus dispositivos.</h1>
         <p class="mt-4 max-w-2xl text-base leading-7 text-muted">O Pulse começa com uma base navegável, tokens compartilhados e uma bridge tipada de infraestrutura entre Vue e Rust. As capacidades de produto entram depois, em camadas separadas.</p>
@@ -74,7 +74,7 @@ const transfersStore = useTransfersStore();
       <div>
         <div class="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Dados demonstrativos</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{{ devicesStore.sourceLabel }}</p>
             <h2 class="mt-1 text-lg font-semibold tracking-tight text-foreground">Dispositivos</h2>
           </div>
           <span class="text-xs text-muted">{{ devicesStore.onlineDevices.length }} online</span>
@@ -84,10 +84,10 @@ const transfersStore = useTransfersStore();
       <div>
         <div class="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Estrutura demonstrativa</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{{ transfersStore.sourceLabel }}</p>
             <h2 class="mt-1 text-lg font-semibold tracking-tight text-foreground">Transferências</h2>
           </div>
-          <span class="text-xs text-muted">{{ transfersStore.activeTransfers.length }} mock</span>
+          <span class="text-xs text-muted">{{ transfersStore.activeTransfers.length }} ativos</span>
         </div>
         <TransferPreview />
       </div>

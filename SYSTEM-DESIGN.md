@@ -4,7 +4,7 @@ Este é o documento principal da arquitetura do Pulse. A primeira parte descreve
 
 ## Resumo do estado atual
 
-O repositório contém uma fundação desktop Tauri 2 com frontend Vue 3. O frontend tem navegação, componentes e stores com dados mockados. O processo Tauri possui um runtime interno estruturado, registra o serviço de storage SQLite local e expõe a infraestrutura bridge tipada (`bridge_get_info`, `bridge_get_snapshot` e `pulse.bridge.status`), mas os demais serviços de produto permanecem não configurados. Discovery, pairing, rede, hidratação da UI, transferência real e os efeitos locais ainda não existem.
+O repositório contém uma fundação desktop Tauri 2 com frontend Vue 3. O frontend tem navegação, componentes e stores com uma fonte explícita de bridge/fixture. O processo Tauri possui um runtime interno estruturado, registra o serviço de storage SQLite local e expõe a infraestrutura bridge tipada (`bridge_get_info`, `bridge_get_snapshot` e `pulse:bridge:status`), mas os demais serviços de produto permanecem não configurados. Discovery, pairing, rede, dados de produto, transferência real e os efeitos locais ainda não existem.
 
 ### Legenda de maturidade
 
@@ -32,7 +32,7 @@ flowchart LR
   Shell --> Router["Vue Router\nviews e rotas de dispositivo"]
   Router --> Components["componentes Vue\nUI e placeholders"]
   Components --> Stores["Pinia\napp, devices, transfers"]
-  Stores --> Mock["estado mockado\nem memória"]
+  Stores --> Source["bridge de infraestrutura\nou fixture DEV"]
   Settings["SettingsView"] --> Bridge["useRustBridge\nBridgeClient"]
   Bridge -->|invoke tipado| Tauri["Tauri 2"]
   Tauri -->|status event| Bridge
@@ -44,7 +44,7 @@ flowchart LR
 
 ### Frontend
 
-- `src/main.ts` cria o app Vue, instala Pinia e Vue Router e importa os estilos globais.
+- `src/main.ts` cria o app Vue, instala Pinia e Vue Router, inicia o bootstrap idempotente da bridge e importa os estilos globais.
 - `src/App.vue` delega para `AppShell.vue`.
 - `src/components/app/` contém o shell persistente: sidebar e cabeçalho/conteúdo.
 - `src/views/` contém as páginas de Início, Transferências, Histórico, Configurações e contexto de dispositivo.
@@ -71,13 +71,13 @@ O router usa `createWebHistory()` e define:
 
 ### Estado atual
 
-Pinia tem três stores, todos efêmeros e inicializados com dados locais:
+Pinia tem três stores efêmeros, com o store `app` hidratando a leitura de infraestrutura e os stores de coleção mantendo uma fonte de apresentação explícita:
 
-- `app`: versão `0.1.0`, estado da bridge e chamada `testBridge()`.
-- `devices`: três dispositivos mockados, `selectedDeviceId`, dispositivo selecionado, lista online e `selectDevice()`.
-- `transfers`: dois registros mockados; `activeTransfers` exclui somente itens com status `complete`.
+- `app`: versão `0.1.0`, bootstrap/listeners da bridge, info/snapshot público, ressincronização, estado de erro e chamada `testBridge()`.
+- `devices`: itens de apresentação derivados de fixtures somente em DEV, `selectedDeviceId`, dispositivo selecionado, lista online e `selectDevice()`; fora de DEV a fonte começa vazia.
+- `transfers`: itens de apresentação derivados de fixtures somente em DEV; `activeTransfers` exclui somente itens com status `complete`.
 
-O storage Rust persiste schema e metadados por APIs internas, mas ainda não há hidratação dos stores, sincronização com rota/eventos, mutation de transferências, histórico conectado ou fonte nativa de dispositivos. Recarregar a aplicação reinicia os stores Vue.
+O storage Rust persiste schema e metadados por APIs internas, mas ainda não há hidratação de dados de produto, mutation de transferências, histórico conectado ou fonte nativa de dispositivos. O store `app` observa status/eventos da bridge e pede novo snapshot em gaps, mas eventos sem DTO de produto não alteram coleções. Recarregar a aplicação reinicia os stores Vue.
 
 ### Bridge Tauri ↔ Rust — infraestrutura implementada
 
@@ -89,23 +89,23 @@ O storage Rust persiste schema e metadados por APIs internas, mas ainda não há
 - respostas, erros e eventos são validados no adapter; IDs, versões, sequência e dados públicos não são aceitos implicitamente;
 - listeners são compartilhados, deduplicam `eventId`, detectam gaps/troca de stream e aguardam a Promise de `listen` antes de `unlisten`.
 
-Em Rust, `src-tauri/src/bridge/mod.rs` registra DTOs fechados e redigidos para `bridge_get_info` e `bridge_get_snapshot`, além do evento `pulse.bridge.status` emitido depois do start do runtime. O snapshot reporta `offline` e `not-configured` enquanto não há serviço de produto. `greet` permanece sem envelope como smoke test legado; `SettingsView` continua mostrando seus estados locais `idle`, `loading`, `success` e `error`.
+Em Rust, `src-tauri/src/bridge/mod.rs` registra DTOs fechados e redigidos para `bridge_get_info` e `bridge_get_snapshot`, além do evento `pulse:bridge:status` emitido depois do start do runtime. O snapshot reporta `offline` e `not-configured` enquanto não há serviço de produto. `useAppStore()` registra o lifecycle do cliente e expõe esse estado em Configurações; `greet` permanece sem envelope como smoke test legado.
 
 O runtime em `src-tauri/src/runtime/mod.rs` é um orquestrador puro e testável: mantém slots `not-configured`, `inactive`, `stopped`, `running` e `failed`, inicia serviços configurados em ordem fixa, faz cleanup reverso e retorna erros fechados. No `setup`, `StorageService` abre `app_local_data_dir()` e aplica o schema SQLite; os demais serviços permanecem não configurados, então o runtime continua em `partial` e não alega que networking ou recursos estão ativos.
 
-Ainda não há comandos de domínio, sockets, processos auxiliares, serialização de mensagens de produto ou serviços de recursos registrados. A bridge implementada é somente infraestrutura de contrato; o storage continua interno e os stores Vue não são hidratados por ela.
+Ainda não há comandos de domínio, sockets, processos auxiliares, serialização de mensagens de produto ou serviços de recursos registrados. A bridge implementada continua sendo somente infraestrutura de contrato; os stores Vue agora observam essa infraestrutura, mas não recebem dispositivos, transferências ou outros dados de produto.
 
 ### Contrato da bridge — infraestrutura implementada
 
-A TASK 05 definiu e a TASK 09 implementou o subconjunto IPC seguro: `bridgeContractVersion=1`, `DOMAIN_MODEL_VERSION=1`, requests correlacionados por `requestId`, respostas `success/stale/offline`, erros com códigos e `messageKey`, e os eventos namespaced `pulse.bridge.status`, `pulse.domain.event` e `pulse.domain.snapshot-invalidated`. Somente o primeiro evento é produzido atualmente; os dois últimos permanecem pontos de integração futura.
+A TASK 05 definiu e a TASK 09 implementou o subconjunto IPC seguro: `bridgeContractVersion=1`, `DOMAIN_MODEL_VERSION=1`, requests correlacionados por `requestId`, respostas `success/stale/offline`, erros com códigos e `messageKey`, e os eventos namespaced `pulse:bridge:status`, `pulse:domain:event` e `pulse:domain:snapshot-invalidated`. Os nomes usam somente caracteres aceitos pelo Tauri 2. Somente o primeiro evento é produzido atualmente; os dois últimos permanecem pontos de integração futura.
 
 O contrato separa `bridgeContractVersion`, `DOMAIN_MODEL_VERSION` e a futura `protocolVersion`. Commands de produto usarão requests correlacionados por `requestId` e respostas serializáveis; operações com efeito serão confirmadas por eventos de domínio, não pela resolução isolada do `invoke`. Os estados locais `idle/loading/success/error` ficam no cliente, enquanto leituras podem reportar `stale` ou `offline` sem alterar trust.
 
-Os envelopes carregam versão, `streamId`, sequência e `eventId`, e o cliente exige ressincronização após gap ou payload incompatível. Eventos não serão usados para streams de alto volume; esse caso deverá avaliar Channels nas tasks de transferência. Listeners têm lifecycle explícito com `unlisten`, e a prévia web mantém `greet` como demo sem simular eventos ou sucesso de produto. O contrato completo, os códigos de erro e os dados proibidos estão em [`docs/tasks/TASK-05-contrato-da-bridge-rust-vue.md`](docs/tasks/TASK-05-contrato-da-bridge-rust-vue.md); a implementação da infraestrutura está registrada em [`docs/tasks/TASK-09-bridge-tipadas-rust-vue.md`](docs/tasks/TASK-09-bridge-tipadas-rust-vue.md), enquanto a integração dos stores fica para a TASK 10.
+Os envelopes carregam versão, `streamId`, sequência e `eventId`, e o cliente exige ressincronização após gap ou payload incompatível. Eventos não serão usados para streams de alto volume; esse caso deverá avaliar Channels nas tasks de transferência. Listeners têm lifecycle explícito com `unlisten`, e a prévia web mantém `greet` como demo sem simular eventos ou sucesso de produto. O contrato completo, os códigos de erro e os dados proibidos estão em [`docs/tasks/TASK-05-contrato-da-bridge-rust-vue.md`](docs/tasks/TASK-05-contrato-da-bridge-rust-vue.md); a implementação da infraestrutura está registrada em [`docs/tasks/TASK-09-bridge-tipadas-rust-vue.md`](docs/tasks/TASK-09-bridge-tipadas-rust-vue.md), e o boundary de estado Vue/fixtures em [`docs/tasks/TASK-10-integrar-modelos-estado-vue.md`](docs/tasks/TASK-10-integrar-modelos-estado-vue.md).
 
 ### Base de testes — implementada
 
-A TASK 06 adicionou Vitest, Vue Test Utils e `happy-dom` como ferramentas de desenvolvimento, com Node como ambiente padrão e DOM somente nos testes de componente. Fixtures versionadas, relógio controlável e `FakePeer` vivem em `tests/` e não são importados pela aplicação; os contratos da bridge são exercitados por `tests/bridge-contract.test.ts` e `tests/bridge-client.test.ts`, enquanto transições equivalentes do domínio Rust e o storage em diretórios temporários são exercitados por `cargo test` em `src-tauri/tests/`. A base continua offline e determinística: não abre sockets, não acessa keyring nem o diretório de dados do usuário, e não reutiliza os mocks dos stores. Discovery, bridge de produto e peers reais continuam futuros.
+A TASK 06 adicionou Vitest, Vue Test Utils e `happy-dom` como ferramentas de desenvolvimento, com Node como ambiente padrão e DOM somente nos testes de componente. Fixtures versionadas, relógio controlável e `FakePeer` vivem em `tests/` e não são importados pela aplicação; os contratos da bridge são exercitados por `tests/bridge-contract.test.ts` e `tests/bridge-client.test.ts`, enquanto o bootstrap e o boundary de fixtures são exercitados por `tests/app-state.test.ts`. A base continua offline e determinística: não abre sockets, não acessa keyring nem o diretório de dados do usuário, e não reutiliza os mocks dos stores como estado de produção. Discovery, bridge de produto e peers reais continuam futuros.
 
 ## Shell Tauri e configuração
 
@@ -123,7 +123,7 @@ A TASK 06 adicionou Vitest, Vue Test Utils e `happy-dom` como ferramentas de des
 
 Os diretórios abaixo continuam existindo como pontos de organização. `bridge/`, `runtime/` e `storage/` têm infraestrutura implementada; os demais ainda não têm implementação de produto:
 
-`src-tauri/src/domain/` contém somente modelos puros e transições do domínio, ainda sem commands de produto. `src-tauri/src/bridge/` contém DTOs, validação, commands de leitura e evento de status. `src-tauri/src/runtime/` contém o orquestrador de lifecycle; `src-tauri/src/storage/` contém a infraestrutura SQLite e seu serviço de runtime, sem hidratação da UI ou efeitos de produto.
+`src-tauri/src/domain/` contém somente modelos puros e transições do domínio, ainda sem commands de produto. `src-tauri/src/bridge/` contém DTOs, validação, commands de leitura e evento de status. `src-tauri/src/runtime/` contém o orquestrador de lifecycle; `src-tauri/src/storage/` contém a infraestrutura SQLite e seu serviço de runtime, sem dados de produto atravessando a bridge ou efeitos locais.
 
 | Módulo | Responsabilidade planejada |
 | --- | --- |
@@ -216,7 +216,7 @@ Não adicionar credenciais, dados privados de rede ou lógica de transferência 
 2. Estruturar o runtime de serviços e o ciclo de vida compartilhado.
 3. Implementar persistência local atrás de APIs de serviço.
 4. Conectar commands/eventos tipados da bridge.
-5. Integrar estado real do Vue e, depois, discovery, pairing/trust e capabilities.
+5. Integrar o boundary de estado do Vue e, depois, discovery, pairing/trust e capabilities.
 6. Isolar e testar o transporte/protocolo local antes de conectar transferências e integrações avançadas.
 
 Cada etapa deve manter um modo mockado honesto para desenvolvimento visual e adicionar testes de estado antes de conectar efeitos reais.

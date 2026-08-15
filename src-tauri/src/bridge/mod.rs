@@ -14,9 +14,9 @@ use crate::domain::DOMAIN_MODEL_VERSION;
 use crate::runtime::{RuntimeError, RuntimePhase, RuntimeSnapshot, RuntimeState};
 
 pub const BRIDGE_CONTRACT_VERSION: u16 = 1;
-pub const BRIDGE_STATUS_EVENT: &str = "pulse.bridge.status";
-pub const DOMAIN_EVENT_EVENT: &str = "pulse.domain.event";
-pub const SNAPSHOT_INVALIDATED_EVENT: &str = "pulse.domain.snapshot-invalidated";
+pub const BRIDGE_STATUS_EVENT: &str = "pulse:bridge:status";
+pub const DOMAIN_EVENT_EVENT: &str = "pulse:domain:event";
+pub const SNAPSHOT_INVALIDATED_EVENT: &str = "pulse:domain:snapshot-invalidated";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
