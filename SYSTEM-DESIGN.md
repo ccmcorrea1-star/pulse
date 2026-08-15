@@ -4,7 +4,7 @@ Este é o documento principal da arquitetura do Pulse. A primeira parte descreve
 
 ## Resumo do estado atual
 
-O repositório contém uma fundação desktop Tauri 2 com frontend Vue 3. O frontend tem navegação, componentes e stores com uma fonte explícita de bridge/fixture. O processo Tauri possui um runtime interno estruturado, registra o serviço de storage SQLite local e expõe a infraestrutura bridge tipada (`bridge_get_info`, `bridge_get_snapshot` e `pulse:bridge:status`), mas os demais serviços de produto permanecem não configurados. Discovery, pairing, rede, dados de produto, transferência real e os efeitos locais ainda não existem.
+O repositório contém uma fundação desktop Tauri 2 com frontend Vue 3. O frontend tem navegação, componentes e stores com uma fonte explícita de bridge/fixture. O processo Tauri possui um runtime interno estruturado, registra o serviço de storage SQLite local e o discovery mDNS/DNS-SD de candidatos transitórios, e expõe a infraestrutura bridge tipada (`bridge_get_info`, `bridge_get_snapshot` e `pulse:bridge:status`). Pairing, presença/heartbeat, registro conhecido, transporte de dados, dados de produto e efeitos locais permanecem não implementados.
 
 ### Legenda de maturidade
 
@@ -38,6 +38,7 @@ flowchart LR
   Tauri -->|status event| Bridge
   Tauri --> Runtime["RuntimeState\nlifecycle parcial"]
   Runtime --> Storage["StorageService\nSQLite + migrations"]
+  Runtime --> Discovery["DiscoveryService\nmDNS/DNS-SD candidates"]
   Tauri --> Rust["src-tauri/src/lib.rs\ngreet + bridge commands"]
   Runtime --> Rust
 ```
@@ -77,7 +78,7 @@ Pinia tem três stores efêmeros, com o store `app` hidratando a leitura de infr
 - `devices`: itens de apresentação derivados de fixtures somente em DEV, `selectedDeviceId`, dispositivo selecionado, lista online e `selectDevice()`; fora de DEV a fonte começa vazia.
 - `transfers`: itens de apresentação derivados de fixtures somente em DEV; `activeTransfers` exclui somente itens com status `complete`.
 
-O storage Rust persiste schema e metadados por APIs internas, mas ainda não há hidratação de dados de produto, mutation de transferências, histórico conectado ou fonte nativa de dispositivos. O store `app` observa status/eventos da bridge e pede novo snapshot em gaps, mas eventos sem DTO de produto não alteram coleções. Recarregar a aplicação reinicia os stores Vue.
+O storage Rust persiste schema e metadados por APIs internas, mas ainda não há hidratação de dados de produto, mutation de transferências, histórico conectado ou fonte de dispositivos consumida pela bridge. O `DiscoveryService` navega `_pulse._udp.local.`, valida TXT, deduplica anúncios, preserva endpoints resolvidos no registro transitório e expira candidatos por TTL; ele ainda não deriva presença nem persiste dispositivos conhecidos. O store `app` observa status/eventos da bridge e pede novo snapshot em gaps, mas eventos sem DTO de produto não alteram coleções. Recarregar a aplicação reinicia os stores Vue.
 
 ### Bridge Tauri ↔ Rust — infraestrutura implementada
 
@@ -91,9 +92,9 @@ O storage Rust persiste schema e metadados por APIs internas, mas ainda não há
 
 Em Rust, `src-tauri/src/bridge/mod.rs` registra DTOs fechados e redigidos para `bridge_get_info` e `bridge_get_snapshot`, além do evento `pulse:bridge:status` emitido depois do start do runtime. O snapshot reporta `offline` e `not-configured` enquanto não há serviço de produto. `useAppStore()` registra o lifecycle do cliente e expõe esse estado em Configurações; `greet` permanece sem envelope como smoke test legado.
 
-O runtime em `src-tauri/src/runtime/mod.rs` é um orquestrador puro e testável: mantém slots `not-configured`, `inactive`, `stopped`, `running` e `failed`, inicia serviços configurados em ordem fixa, faz cleanup reverso e retorna erros fechados. No `setup`, `StorageService` abre `app_local_data_dir()` e aplica o schema SQLite; os demais serviços permanecem não configurados, então o runtime continua em `partial` e não alega que networking ou recursos estão ativos.
+O runtime em `src-tauri/src/runtime/mod.rs` é um orquestrador puro e testável: mantém slots `not-configured`, `inactive`, `stopped`, `running` e `failed`, inicia serviços configurados em ordem fixa, faz cleanup reverso e retorna erros fechados. No `setup`, `StorageService` abre `app_local_data_dir()` e aplica o schema SQLite; `DiscoveryService` inicia o browse mDNS, enquanto os demais serviços permanecem não configurados. O runtime continua em `partial` e não alega que pairing, transporte de dados ou recursos estão ativos.
 
-Ainda não há comandos de domínio, sockets, processos auxiliares, serialização de mensagens de produto ou serviços de recursos registrados. A bridge implementada continua sendo somente infraestrutura de contrato; os stores Vue agora observam essa infraestrutura, mas não recebem dispositivos, transferências ou outros dados de produto.
+Ainda não há comandos de domínio, sockets de transporte, processos auxiliares, serialização de mensagens de produto ou serviços de recursos registrados. O discovery usa sockets multicast internamente via `mdns-sd`, mas não expõe candidatos pela bridge. A bridge implementada continua sendo somente infraestrutura de contrato; os stores Vue agora observam essa infraestrutura, mas não recebem dispositivos, transferências ou outros dados de produto.
 
 ### Contrato da bridge — infraestrutura implementada
 
@@ -105,7 +106,7 @@ Os envelopes carregam versão, `streamId`, sequência e `eventId`, e o cliente e
 
 ### Base de testes — implementada
 
-A TASK 06 adicionou Vitest, Vue Test Utils e `happy-dom` como ferramentas de desenvolvimento, com Node como ambiente padrão e DOM somente nos testes de componente. Fixtures versionadas, relógio controlável e `FakePeer` vivem em `tests/` e não são importados pela aplicação; os contratos da bridge são exercitados por `tests/bridge-contract.test.ts` e `tests/bridge-client.test.ts`, enquanto o bootstrap e o boundary de fixtures são exercitados por `tests/app-state.test.ts`. A base continua offline e determinística: não abre sockets, não acessa keyring nem o diretório de dados do usuário, e não reutiliza os mocks dos stores como estado de produção. Discovery, bridge de produto e peers reais continuam futuros.
+A TASK 06 adicionou Vitest, Vue Test Utils e `happy-dom` como ferramentas de desenvolvimento, com Node como ambiente padrão e DOM somente nos testes de componente. Fixtures versionadas, relógio controlável e `FakePeer` vivem em `tests/` e não são importados pela aplicação; os contratos da bridge são exercitados por `tests/bridge-contract.test.ts` e `tests/bridge-client.test.ts`, enquanto o bootstrap e o boundary de fixtures são exercitados por `tests/app-state.test.ts`. A base continua offline e determinística: os testes de discovery exercitam parser/registro com anúncios falsos e não abrem multicast, não acessam keyring nem o diretório de dados do usuário, e não reutilizam os mocks dos stores como estado de produção. Discovery exposto pela bridge, presença e peers reais continuam futuros.
 
 ## Shell Tauri e configuração
 
@@ -121,7 +122,7 @@ A TASK 06 adicionou Vitest, Vue Test Utils e `happy-dom` como ferramentas de des
 
 ## Módulos preparados no Rust
 
-Os diretórios abaixo continuam existindo como pontos de organização. `bridge/`, `runtime/` e `storage/` têm infraestrutura implementada; os demais ainda não têm implementação de produto:
+Os diretórios abaixo continuam existindo como pontos de organização. `bridge/`, `runtime/`, `storage/` e o boundary de discovery têm implementação; os demais ainda não têm implementação de produto:
 
 `src-tauri/src/domain/` contém somente modelos puros e transições do domínio, ainda sem commands de produto. `src-tauri/src/bridge/` contém DTOs, validação, commands de leitura e evento de status. `src-tauri/src/runtime/` contém o orquestrador de lifecycle; `src-tauri/src/storage/` contém a infraestrutura SQLite e seu serviço de runtime, sem dados de produto atravessando a bridge ou efeitos locais.
 
@@ -130,7 +131,7 @@ Os diretórios abaixo continuam existindo como pontos de organização. `bridge/
 | `bridge/` | DTOs IPC, validação, commands de infraestrutura e eventos públicos. **Implementado; sem commands de produto.** |
 | `runtime/` | Estado compartilhado, ordem de lifecycle e fronteira entre serviços futuros. **Estruturado; sem serviços de produto ativos.** |
 | `storage/` | SQLite local, schema/migrations e APIs internas de metadados. **Implementado; sem hidratação da UI ou dados secretos.** |
-| `discovery/` | Encontrar e acompanhar presença de dispositivos na rede local. |
+| `discovery/` | Browse mDNS/DNS-SD, validação e registro transitório de candidatos. **Implementado no limite da TASK 11; presença e bridge ainda não.** |
 | `pairing/` | Pareamento explícito, identidade, confiança e revogação. |
 | `device/` | Registro, metadados e estado dos dispositivos conhecidos. |
 | `protocol/` | Contratos de mensagens, capacidades e transporte entre peers. |
@@ -161,7 +162,7 @@ flowchart LR
 4. **Discovery/transport/protocol:** descobre peers e move mensagens diretamente pela rede local.
 5. **Serviços de recurso:** implementam transferências, Clipboard, mídia, notificações e comandos sob autorização.
 
-A UI deve depender de modelos de domínio estáveis e eventos, não de uma implementação específica de transporte. A TASK 02 registra a decisão arquitetural de usar mDNS/DNS-SD para discovery e QUIC v1 para o transporte direto; essa decisão ainda não está implementada no código atual.
+A UI deve depender de modelos de domínio estáveis e eventos, não de uma implementação específica de transporte. A TASK 02 registra a decisão arquitetural de usar mDNS/DNS-SD para discovery e QUIC v1 para o transporte direto. O browse mDNS e o registro transitório da TASK 11 estão implementados no Rust; QUIC, presença, bridge de produto e os fluxos de confiança continuam futuros.
 
 ## Modelo de capabilities — direção
 
@@ -180,9 +181,9 @@ Cada capability deve ter, no mínimo, identidade do dispositivo, estado (`availa
 
 ## Direção por domínio
 
-### Discovery e pairing — planejado
+### Discovery e pairing — discovery implementado; pairing planejado
 
-Discovery deve localizar candidatos na rede local e expor presença sem conceder acesso. Pairing deve exigir ação explícita, apresentar identidade verificável e criar uma relação confiável revogável. Nenhum desses fluxos existe hoje.
+Discovery localiza candidatos na rede local sem conceder acesso; o adapter mDNS e o registro transitório estão implementados em `src-tauri/src/discovery/`, sem exposição à UI. Presença/heartbeat, registro conhecido e bridge de candidatos ainda são planejados. Pairing deve exigir ação explícita, apresentar identidade verificável e criar uma relação confiável revogável.
 
 ### Transfer — planejado
 

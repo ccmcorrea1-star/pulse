@@ -4,7 +4,7 @@
 
 Pulse é um aplicativo desktop Linux para integrar dispositivos próximos diretamente pela rede local. A direção do produto é semelhante à de ferramentas como LocalSend e KDE Connect, mas com uma central de controle compacta para descobrir e parear dispositivos confiáveis, compartilhar conteúdo e acompanhar o estado dessas interações sem depender de cloud.
 
-O repositório está na versão `0.1.0` e contém a fundação navegável do aplicativo. A rede local, os dispositivos e as transferências exibidos hoje são dados demonstrativos; não há descoberta, pareamento ou transporte de dados ativo.
+O repositório está na versão `0.1.0` e contém a fundação navegável do aplicativo. O núcleo Rust já navega anúncios mDNS/DNS-SD e mantém candidatos transitórios, mas esse estado ainda não atravessa a bridge nem aparece na UI; pareamento, presença e transporte de dados continuam não implementados.
 
 ## Objetivos
 
@@ -45,24 +45,25 @@ O público principal é quem administra os próprios dispositivos — ou uma peq
 - Dois registros mockados de transferência, incluindo progresso e fila visual na página inicial.
 - Tela de configuração capaz de testar a comunicação Vue ↔ Rust por meio do command `greet`.
 - Infraestrutura bridge tipada e bootstrap Vue para consultar info/snapshot público, observar eventos/status do runtime e manter o estado de infraestrutura nos stores; o estado de produto continua não configurado.
+- Discovery Rust via mDNS/DNS-SD no serviço `_pulse._udp.local.`, com validação de anúncios, registro transitório, expiração por TTL, deduplicação e preservação de endpoints IPv4/IPv6; candidatos ainda não são expostos à UI ou tratados como confiáveis.
 - Interface dark, compacta e responsiva em desktop, com adaptação básica para larguras menores.
 - Fundação de persistência SQLite local no Rust, com schema versionado, migrations forward-only e proteção contra corrupção/incompatibilidade; os stores Vue ainda não são hidratados por ela.
 
 ### Estruturado/preparado
 
 - O router já reserva os destinos das áreas funcionais por dispositivo.
-- `src-tauri/src/` contém diretórios preparados para `discovery`, `pairing`, `device`, `protocol`, `transfer`, `clipboard` e `media`, ainda sem implementação de domínio.
+- `src-tauri/src/` contém o discovery local implementado no limite da TASK 11 e diretórios preparados para `pairing`, `device`, `protocol`, `transfer`, `clipboard` e `media`.
 - O contrato canônico de domínio já está estruturado em TypeScript e em modelos puros Rust; os stores usam adaptadores de apresentação e mantêm fixtures isoladas no boundary de desenvolvimento enquanto não há dados de produto.
 - A configuração de capabilities Tauri existe e hoje concede somente `core:default`.
 
 ### Ainda não implementado
 
-- Descoberta de dispositivos na rede local.
+- Presença/heartbeat, registro de dispositivos conhecidos e apresentação de candidatos pela bridge/UI.
 - Pareamento, identidade, confiança e revogação.
 - Transferência real de arquivos ou pastas, incluindo seleção, fila, pausa, retomada e cancelamento.
 - Clipboard entre dispositivos, envio de texto/links e histórico persistente.
 - Notificações, mídia, controle remoto e comandos.
-- Dados reais de dispositivos/transferências, persistência funcional de produto, identidade, histórico, sincronização de eventos de produto e qualquer protocolo de rede.
+- Dados de produto pela bridge, persistência funcional de candidatos/dispositivos, identidade, histórico, sincronização de eventos de produto e qualquer protocolo de transporte de dados.
 
 ## Funcionalidades e roadmap
 
@@ -70,7 +71,7 @@ O roadmap abaixo descreve direção funcional. Ele não representa código já d
 
 | Capacidade | Estado atual | Próxima direção |
 | --- | --- | --- |
-| Dispositivos | Fixture de desenvolvimento, fonte vazia fora de DEV e rotas de contexto | Discovery local, detalhes e atualização de presença |
+| Dispositivos | Discovery mDNS e registro transitório implementados no Rust; UI ainda usa fixture/fonte vazia | Presença, registro conhecido, bridge e detalhes na UI |
 | Pareamento e confiança | Não existe; apenas estrutura de módulos | Pareamento explícito, identidade verificável e permissões por capacidade |
 | Arquivos e pastas | Aba reservada; sem picker ou transporte | Envio local direto com progresso, fila, pausa e retomada |
 | Texto e links | Não há fluxo funcional | Tratar como conteúdo leve dentro do envio local |

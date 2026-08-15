@@ -105,7 +105,7 @@ As dependências abaixo são precedentes de produto ou arquitetura. A validaçã
 
 ## Fase 3 — Discovery e presença de dispositivos
 
-- [ ] TASK 11 — Implementar discovery local de candidatos
+- [x] TASK 11 — Implementar discovery local de candidatos
   - Objetivo: Encontrar dispositivos anunciados na rede local sem conceder confiança automaticamente.
   - Escopo: Anúncio e consulta, identificação inicial, escopo de rede, expiração de candidatos e isolamento entre descoberta e pairing.
   - Dependências: TASK 02, TASK 07 e TASK 09.

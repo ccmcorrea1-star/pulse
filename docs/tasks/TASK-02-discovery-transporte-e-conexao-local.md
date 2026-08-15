@@ -11,7 +11,7 @@ Esta task fecha uma decisão arquitetural e um plano de validação. Ela não ad
 ## Estado atual
 
 - O produto é local-first e não usa cloud como requisito para comunicação entre dispositivos (`PRODUCT.md:27-33`).
-- Discovery, pairing, transporte, persistência e eventos de produto ainda não existem (`PRODUCT.md:56-63`, `SYSTEM-DESIGN.md:5-7,78-93`).
+- No momento desta decisão, discovery, pairing, transporte, persistência e eventos de produto ainda não existiam. A TASK 11 implementou posteriormente o browse mDNS e o registro transitório, mantendo pairing, transporte e eventos de produto fora do escopo (`PRODUCT.md:56-63`, `SYSTEM-DESIGN.md:5-7,78-93`).
 - A arquitetura já separa UI Vue, bridge Tauri, domínio Rust, discovery/transport/protocol e serviços de recurso (`SYSTEM-DESIGN.md:138-146`). A UI não deve conhecer sockets, criptografia ou pacotes.
 - `DiscoveryCandidate` contém um endpoint transitório, capabilities anunciadas, timestamps e expiração (`src/types/index.ts:86-109`); `Device` e `Presence` representam identidade conhecida e disponibilidade observada separadamente (`src/types/index.ts:116-131`).
 - As transições canônicas já distinguem candidato `discovered/expired` e presença `unknown/online/stale/offline` (`src/types/index.ts:437-447`, `src-tauri/src/domain/mod.rs:46-81`). Não há estado de conexão ou serviço de networking implementado.

@@ -3,6 +3,7 @@
 use tauri::Manager;
 
 pub mod bridge;
+pub mod discovery;
 pub mod domain;
 pub mod runtime;
 pub mod storage;
@@ -25,6 +26,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 .register(storage::StorageService::new(
                     data_dir.join(storage::DATABASE_FILE_NAME),
                 ))
+                .map_err(|error| Box::new(error) as Box<dyn std::error::Error>)?
+                .register(discovery::DiscoveryService::new())
                 .map_err(|error| Box::new(error) as Box<dyn std::error::Error>)?
                 .build();
             let state = app.state::<runtime::RuntimeState>();

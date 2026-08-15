@@ -10,13 +10,13 @@ Esta task é documental e de decisão. Ela não adiciona rede, criptografia de p
 
 ## Estado atual
 
-- O produto é local-first, mas a rede local não é considerada confiável por padrão; descoberta, pairing, identidade, trust e revogação ainda não existem (`PRODUCT.md:5-7,27-33,56-63`).
+- O produto é local-first, mas a rede local não é considerada confiável por padrão; a TASK 11 implementou somente discovery mDNS e candidatos transitórios. Pairing, identidade, trust e revogação ainda não existem (`PRODUCT.md:5-7,27-33,56-63`).
 - O contrato canônico separa candidato, presença, pairing, trust e capability (`src/types/index.ts:86-179`, `src-tauri/src/domain/mod.rs:46-297`). Os tipos atuais são modelos puros, não uma implementação de autenticação ou autorização.
 - `DiscoveryCandidate` carrega nome, endpoint e capabilities anunciadas sem prova de identidade (`src/types/index.ts:96-109`). A TASK 02 decidiu mDNS/DNS-SD para discovery e QUIC v1 via `quinn`, mas também deixou explícito que anúncio e sessão QUIC não concedem confiança (`docs/tasks/TASK-02-discovery-transporte-e-conexao-local.md:47-88,122-145`).
 - `PresentedIdentity` possui apenas dados de apresentação opcionais (`src/types/index.ts:133-138`); ainda não há registro de chave pública, prova assinada, fingerprint verificável ou política de armazenamento de segredo.
 - `CapabilityGrant` já separa decisão de autorização de `CapabilityInfo.available`, mas a aplicação ainda não consulta grants e os stores Vue continuam mockados (`src/types/index.ts:164-179`, `src/stores/`).
 - `TrustRelationship.pairingSessionId` é opcional e os tipos não exigem estruturalmente uma prova de chave ou pairing confirmado para o estado `trusted` (`src/types/index.ts:154-162`, `src-tauri/src/domain/mod.rs:268-277`). Essa exigência fica como invariante de serviço até que os contratos de implementação a representem.
-- O runtime Rust só registra `greet`; não há sockets, listeners, persistência, keyring ou comandos de produto (`src-tauri/src/lib.rs`, `src-tauri/Cargo.toml`, `SYSTEM-DESIGN.md:78-105`).
+- O runtime Rust registra `greet`, storage e o browse mDNS da TASK 11; ainda não há sockets de transporte, listeners de produto, keyring ou comandos de produto (`src-tauri/src/lib.rs`, `src-tauri/Cargo.toml`, `SYSTEM-DESIGN.md:78-105`).
 - A capability Tauri `core:default` é uma permissão do shell e não deve ser confundida com capability do Pulse entre peers (`src-tauri/capabilities/default.json`, `SYSTEM-DESIGN.md:102-104,148-161`).
 
 ## Brainstorm

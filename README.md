@@ -2,7 +2,7 @@
 
 Pulse é a fundação de um app desktop Linux para integração local entre dispositivos, construído com Tauri 2, Vue 3, TypeScript, Vite, Rust, Tailwind CSS v4 e a configuração de componentes shadcn-vue, além de Pinia, Vue Router, VueUse, Lucide e Simple Icons.
 
-O estado atual é uma base navegável `0.1.0`: a UI, o router, os stores Pinia, as rotas de dispositivo, a bridge Rust tipada de infraestrutura, o bootstrap de estado Vue, o lifecycle interno do runtime e o storage SQLite local estão implementados/estruturados; dispositivos e transferências ainda são fixtures de desenvolvimento, sem networking, pairing, estado de produto ou transferência real.
+O estado atual é uma base navegável `0.1.0`: a UI, o router, os stores Pinia, as rotas de dispositivo, a bridge Rust tipada de infraestrutura, o bootstrap de estado Vue, o lifecycle interno do runtime, o storage SQLite local e o discovery mDNS/DNS-SD de candidatos estão implementados/estruturados; dispositivos e transferências ainda são fixtures de desenvolvimento, sem pairing, presença exposta à UI, estado de produto ou transferência real.
 
 ## Executar
 
